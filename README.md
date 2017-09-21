@@ -1,4 +1,4 @@
-# Identity::Hostdata
+# LoginGov::Hostdata (`identity-hostdata`)
 
 A gem to help read configuration from login.gov infrastructure
 
@@ -17,7 +17,7 @@ Use this gem to access config data on a per-host basis
 ```
 require 'identity/hostdata'
 
-Identity::Hostdata.domain
+LoginGov::Hostdata.domain
 # => "login.gov"
 ```
 
