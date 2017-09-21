@@ -1,15 +1,13 @@
 # Identity::Hostdata
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/identity/hostdata`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+A gem to help read configuration from login.gov infrastructure
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'identity-hostdata'
+gem 'identity-hostdata', github: '18F/identity-hostdata'
 ```
 
 And then execute:
@@ -22,22 +20,22 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Use this gem to access config data on a per-host basis
 
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```
+Identity::Hostdata.domain
+# => "login.gov"
+```
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/identity-hostdata. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+See [CONTRIBUTING](CONTRIBUTING.md) for additional information.
 
-## License
+## Public domain
 
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
+This project is in the worldwide [public domain](LICENSE.md). As stated in [CONTRIBUTING](CONTRIBUTING.md):
 
-## Code of Conduct
+> This project is in the public domain within the United States, and copyright and related rights in the work worldwide are waived through the [CC0 1.0 Universal public domain dedication](https://creativecommons.org/publicdomain/zero/1.0/).
+>
+> All contributions to this project will be released under the CC0 dedication. By submitting a pull request, you are agreeing to comply with this waiver of copyright interest.
 
-Everyone interacting in the Identity::Hostdata project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/identity-hostdata/blob/master/CODE_OF_CONDUCT.md).

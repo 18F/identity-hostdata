@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Library to help read host data for login.gov}
   spec.description   = %q{Common helpers across login.gov infrastructure}
   spec.homepage      = "https://github.com/18F/identity-hostdata"
-  spec.license       = "MIT"
+  spec.license       = "LICENSE.md"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
