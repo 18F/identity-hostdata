@@ -10,21 +10,23 @@ Add this line to your application's Gemfile:
 gem 'identity-hostdata', github: '18F/identity-hostdata'
 ```
 
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install identity-hostdata
-
 ## Usage
 
 Use this gem to access config data on a per-host basis
 
 ```
+require 'identity/hostdata'
+
 Identity::Hostdata.domain
 # => "login.gov"
+```
+
+## Development
+
+Run tests:
+
+```
+make test
 ```
 
 ## Contributing
