@@ -1,11 +1,11 @@
 # coding: utf-8
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "identity/hostdata/version"
+require "login_gov/hostdata/version"
 
 Gem::Specification.new do |spec|
   spec.name          = "identity-hostdata"
-  spec.version       = Identity::Hostdata::VERSION
+  spec.version       = LoginGov::Hostdata::VERSION
   spec.authors       = ["Zach Margolis"]
   spec.email         = ["zachary.margolis@gsa.gov"]
 

@@ -1,13 +1,13 @@
 require "spec_helper"
 
-RSpec.describe Identity::Hostdata do
+RSpec.describe LoginGov::Hostdata do
   it "has a version number" do
-    expect(Identity::Hostdata::VERSION).not_to be nil
+    expect(LoginGov::Hostdata::VERSION).not_to be nil
   end
 
   context 'reading config from the filesystem' do
     around(:each) do |ex|
-      Identity::Hostdata.reset!
+      LoginGov::Hostdata.reset!
 
       FakeFS.with_fresh do
         ex.run
@@ -25,21 +25,21 @@ RSpec.describe Identity::Hostdata do
           end
 
           it 'reads the contents of the file' do
-            expect(Identity::Hostdata.domain).to eq('identitysandbox.gov')
+            expect(LoginGov::Hostdata.domain).to eq('identitysandbox.gov')
           end
         end
 
         context 'when the info/domain file does not exist' do
           it 'blows up' do
-            expect { Identity::Hostdata.domain }.
-              to raise_error(Identity::Hostdata::MissingConfigError)
+            expect { LoginGov::Hostdata.domain }.
+              to raise_error(LoginGov::Hostdata::MissingConfigError)
           end
         end
       end
 
       context 'when /etc/login.gov does not exist (development environment)' do
         it 'is nil' do
-          expect(Identity::Hostdata.domain).to eq(nil)
+          expect(LoginGov::Hostdata.domain).to eq(nil)
         end
       end
     end
@@ -55,21 +55,21 @@ RSpec.describe Identity::Hostdata do
           end
 
           it 'reads the contents of the file' do
-            expect(Identity::Hostdata.env).to eq('staging')
+            expect(LoginGov::Hostdata.env).to eq('staging')
           end
         end
 
         context 'when the info/env file does not exist' do
           it 'blows up' do
-            expect { Identity::Hostdata.env }.
-              to raise_error(Identity::Hostdata::MissingConfigError)
+            expect { LoginGov::Hostdata.env }.
+              to raise_error(LoginGov::Hostdata::MissingConfigError)
           end
         end
       end
 
       context 'when /etc/login.gov does not exist (development environment)' do
         it 'is nil' do
-          expect(Identity::Hostdata.env).to eq(nil)
+          expect(LoginGov::Hostdata.env).to eq(nil)
         end
       end
     end
@@ -78,11 +78,11 @@ RSpec.describe Identity::Hostdata do
       it 'is true when the /etc/login.gov directory exists' do
         FileUtils.mkdir_p('/etc/login.gov')
 
-        expect(Identity::Hostdata.in_datacenter?).to eq(true)
+        expect(LoginGov::Hostdata.in_datacenter?).to eq(true)
       end
 
       it 'is false when the /etc/login.gov does note exist' do
-        expect(Identity::Hostdata.in_datacenter?).to eq(false)
+        expect(LoginGov::Hostdata.in_datacenter?).to eq(false)
       end
     end
   end
