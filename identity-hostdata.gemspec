@@ -9,9 +9,9 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Zach Margolis"]
   spec.email         = ["zachary.margolis@gsa.gov"]
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.summary       = %q{Library to help read host data for login.gov}
+  spec.description   = %q{Common helpers across login.gov infrastructure}
+  spec.homepage      = "https://github.com/18F/identity-hostdata"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
@@ -33,4 +33,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.15"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
+
+  spec.add_development_dependency "fakefs", "~> 0.11"
 end

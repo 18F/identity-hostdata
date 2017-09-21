@@ -1,5 +1,8 @@
 require "bundler/setup"
 require "identity/hostdata"
+require "pp"
+require "fakefs/safe"
+require "fakefs/spec_helpers"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -11,4 +14,6 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  config.include FakeFS::SpecHelpers, fakefs: true
 end
