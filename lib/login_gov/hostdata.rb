@@ -1,3 +1,5 @@
+require "login_gov/hostdata/ec2"
+require "login_gov/hostdata/s3"
 require "login_gov/hostdata/version"
 
 module LoginGov
@@ -26,6 +28,34 @@ module LoginGov
 
     def self.in_datacenter?
       File.directory?(CONFIG_DIR)
+    end
+
+    # @yield Executes a block if in_datacenter?
+    # @yieldparam hostdata
+    def self.in_datacenter
+      raise LocalJumpError, 'in_datacenter must be called with a block' unless block_given?
+      yield self if in_datacenter?
+    end
+
+    # @return [S3]
+    def self.s3(logger: logger)
+      ec2 = LoginGov::Hostdata::EC2.load
+
+      LoginGov::Hostdata::S3.new(
+        env: env,
+        region: ec2.region,
+        logger: logger,
+        bucket: "login-gov.app-secrets.#{ec2.account_id}-#{ec2.region}"
+      )
+    end
+
+    # @return [Logger]
+    def self.logger
+      @logger ||= Logger.new(STDOUT)
+    end
+
+    class << self
+      attr_writer :logger
     end
 
     # @api private

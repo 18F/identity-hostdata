@@ -4,6 +4,8 @@ require "pp"
 require "fakefs/safe"
 require "fakefs/spec_helpers"
 
+Dir['spec/support/*.rb'].each { |path| require File.expand_path(path) }
+
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = ".rspec_status"
@@ -17,3 +19,6 @@ RSpec.configure do |config|
 
   config.include FakeFS::SpecHelpers, fakefs: true
 end
+
+require 'webmock/rspec'
+WebMock.disable_net_connect!

@@ -14,11 +14,23 @@ gem 'identity-hostdata', github: '18F/identity-hostdata'
 
 Use this gem to access config data on a per-host basis
 
-```
+```ruby
 require 'identity/hostdata'
 
 LoginGov::Hostdata.domain
 # => "login.gov"
+```
+
+Download configs from S3:
+
+```ruby
+root = File.expand_path('../../', __FILE__)
+
+LoginGov::Hostdata.in_datacenter do |hostdata|
+  hostdata.s3.download_configs(
+    '/%{env}/v1/idp/database.yml' => File.join(root, 'config/database_s3.yml')
+  )
+end
 ```
 
 ## Development
