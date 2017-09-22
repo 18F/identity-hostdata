@@ -14,17 +14,17 @@ jobs:
       - checkout
 
       - restore-cache:
-          key: identity-hostdata-{{ checksum "Gemfile.lock" }}
+          key: identity-hostdata-{{ checksum "identity-hostdata.gemspec" }}
 
       - run:
           name: Install dependencies
           command: |
             gem install bundler
-            bundle install --deployment --jobs=4 --retry=3 --without deploy development doc production --path vendor/bundle
+            make setup
 
       # Store bundle cache
       - save-cache:
-          key: identity-hostdata-{{ checksum "Gemfile.lock" }}
+          key: identity-hostdata-{{ checksum "identity-hostdata.gemspec" }}
           paths:
             - vendor/bundle
 
