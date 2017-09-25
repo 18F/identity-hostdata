@@ -38,7 +38,7 @@ module LoginGov
     end
 
     # @return [S3]
-    def self.s3(logger: logger)
+    def self.s3(logger: default_logger)
       ec2 = LoginGov::Hostdata::EC2.load
 
       LoginGov::Hostdata::S3.new(
@@ -55,6 +55,8 @@ module LoginGov
     end
 
     class << self
+      alias_method :default_logger, :logger
+
       attr_writer :logger
     end
 
