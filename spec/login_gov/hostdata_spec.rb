@@ -141,6 +141,16 @@ RSpec.describe LoginGov::Hostdata do
       expect(s3.bucket).to eq('login-gov.app-secrets.12345-us-east-1')
     end
 
+    context 'with an s3_client param' do
+      let(:s3_client) { LoginGov::Hostdata::FakeS3Client.new }
+
+      subject(:s3) { LoginGov::Hostdata.s3(s3_client: s3_client) }
+
+      it 'passes s3_client through' do
+        expect(s3.send(:s3_client)).to eq(s3_client)
+      end
+    end
+
     context 'with a logger param' do
       let(:logger) { Logger.new(STDOUT) }
 

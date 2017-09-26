@@ -1,3 +1,12 @@
+# 0.3.2
+
+- Allow overriding `s3_client` in `LoginGov::Hostdata.s3`
+- Expose `LoginGov::Hostdata::FakeS3Client`
+
+# 0.3.1 (2017-09-25)
+
+- Fix circular reference warning
+
 # 0.3.0 (2017-09-22)
 
 - Added `LoginGov::Hostdata.in_datacenter`

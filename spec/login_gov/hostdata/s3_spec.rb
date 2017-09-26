@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe LoginGov::Hostdata::S3 do
-  let(:fake_s3) { FakeS3.new }
+  let(:fake_s3) { LoginGov::Hostdata::FakeS3Client.new }
 
   around(:each) do |ex|
     LoginGov::Hostdata.reset!
