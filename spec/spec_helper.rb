@@ -3,8 +3,7 @@ require "identity/hostdata"
 require "pp"
 require "fakefs/safe"
 require "fakefs/spec_helpers"
-
-Dir['spec/support/*.rb'].each { |path| require File.expand_path(path) }
+require "login_gov/hostdata/fake_s3_client"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

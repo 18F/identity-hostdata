@@ -38,13 +38,14 @@ module LoginGov
     end
 
     # @return [S3]
-    def self.s3(logger: default_logger)
+    def self.s3(logger: default_logger, s3_client: nil)
       ec2 = LoginGov::Hostdata::EC2.load
 
       LoginGov::Hostdata::S3.new(
         env: env,
         region: ec2.region,
         logger: logger,
+        s3_client: s3_client,
         bucket: "login-gov.app-secrets.#{ec2.account_id}-#{ec2.region}"
       )
     end
