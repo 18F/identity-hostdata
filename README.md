@@ -1,6 +1,6 @@
 # LoginGov::Hostdata (`identity-hostdata`)
 
-A gem to help read configuration from login.gov infrastructure
+A gem to help read configuration from login.gov infrastructure, according to the [login.gov infrastructure contract][contract]].
 
 ## Installation
 
@@ -12,7 +12,7 @@ gem 'identity-hostdata', github: '18F/identity-hostdata'
 
 ## Usage
 
-Use this gem to access config data on a per-host basis
+Use this gem to access config data on a per-host basis. The config data is read according to the [login.gov infrastructure contract][contract].
 
 ```ruby
 require 'identity/hostdata'
@@ -32,6 +32,8 @@ LoginGov::Hostdata.in_datacenter do |hostdata|
   )
 end
 ```
+
+[contract]: docs/contract.md
 
 ## Development
 
