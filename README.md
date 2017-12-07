@@ -1,6 +1,6 @@
 # LoginGov::Hostdata (`identity-hostdata`)
 
-A gem to help read configuration from login.gov infrastructure, according to the [login.gov infrastructure contract][contract]].
+A gem to help read configuration from login.gov infrastructure, according to the [login.gov infrastructure contract][contract].
 
 ## Installation
 
