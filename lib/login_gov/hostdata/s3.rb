@@ -1,4 +1,4 @@
-require 'aws-sdk-core'
+require 'aws-sdk-s3'
 require 'fileutils'
 require 'json'
 require 'logger'
@@ -25,7 +25,11 @@ module LoginGov
       private
 
       def s3_client
-        @s3_client ||= Aws::S3::Client.new(region: region)
+        @s3_client ||= Aws::S3::Client.new(
+          region: region,
+          http_open_timeout: 5,
+          http_read_timeout: 5
+        )
       end
 
       def download_config(s3_path, local_path)
