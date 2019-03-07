@@ -7,7 +7,7 @@ Gem::Specification.new do |spec|
   spec.name          = "identity-hostdata"
   spec.version       = LoginGov::Hostdata::VERSION
   spec.authors       = ["Zach Margolis"]
-  spec.email         = ["zachary.margolis@gsa.gov"]
+  spec.email         = ["identity-devops@login.gov"]
 
   spec.summary       = %q{Library to help read host data for login.gov}
   spec.description   = %q{Common helpers across login.gov infrastructure}
