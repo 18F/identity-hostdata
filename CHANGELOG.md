@@ -1,3 +1,8 @@
+# 0.3.3
+
+- Use `Hash#fetch` in `LoginGov::Hostdata::EC2` so that EC2 metadata methods
+  will not return nil if required keys are absent.
+
 # 0.3.2
 
 - Allow overriding `s3_client` in `LoginGov::Hostdata.s3`
