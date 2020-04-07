@@ -1,3 +1,7 @@
+# 0.3.4
+
+- Update dependencies to current versions.  
+
 # 0.3.3
 
 - Use `Hash#fetch` in `LoginGov::Hostdata::EC2` so that EC2 metadata methods
