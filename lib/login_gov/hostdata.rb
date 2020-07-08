@@ -9,6 +9,7 @@ module LoginGov
     CONFIG_DIR = '/etc/login.gov'
     DOMAIN_PATH = File.join(CONFIG_DIR, 'info/domain')
     ENV_PATH = File.join(CONFIG_DIR, 'info/env')
+    INSTANCE_ROLE_PATH = File.join(CONFIG_DIR, 'info/role')
 
     def self.domain
       @domain ||= begin
@@ -21,6 +22,14 @@ module LoginGov
     def self.env
       @env ||= begin
         File.read(ENV_PATH).chomp
+      rescue Errno::ENOENT => err
+        raise MissingConfigError, err.message if in_datacenter?
+      end
+    end
+
+    def self.instance_role
+      @env ||= begin
+        File.read(INSTANCE_ROLE_PATH).chomp
       rescue Errno::ENOENT => err
         raise MissingConfigError, err.message if in_datacenter?
       end

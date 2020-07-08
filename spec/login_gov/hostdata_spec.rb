@@ -73,6 +73,36 @@ RSpec.describe LoginGov::Hostdata do
     end
   end
 
+  describe '.instance_role' do
+    context 'when /etc/login.gov exists (in a datacenter environment)' do
+      before { FileUtils.mkdir_p('/etc/login.gov') }
+
+      context 'when the info/role file exists' do
+        before do
+          FileUtils.mkdir_p('/etc/login.gov/info')
+          File.open('/etc/login.gov/info/role', 'w') { |f| f.puts 'migration' }
+        end
+
+        it 'reads the contents of the file' do
+          expect(LoginGov::Hostdata.instance_role).to eq('migration')
+        end
+      end
+
+      context 'when the info/role file does not exist' do
+        it 'blows up' do
+          expect { LoginGov::Hostdata.instance_role }.
+            to raise_error(LoginGov::Hostdata::MissingConfigError)
+        end
+      end
+    end
+
+    context 'when /etc/login.gov does not exist (development environment)' do
+      it 'is nil' do
+        expect(LoginGov::Hostdata.instance_role).to eq(nil)
+      end
+    end
+  end
+
   describe '.in_datacenter?' do
     it 'is true when the /etc/login.gov directory exists' do
       FileUtils.mkdir_p('/etc/login.gov')
