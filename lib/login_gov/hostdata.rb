@@ -28,7 +28,7 @@ module LoginGov
     end
 
     def self.instance_role
-      @env ||= begin
+      @instance_role ||= begin
         File.read(INSTANCE_ROLE_PATH).chomp
       rescue Errno::ENOENT => err
         raise MissingConfigError, err.message if in_datacenter?
