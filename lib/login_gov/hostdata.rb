@@ -36,7 +36,8 @@ module LoginGov
     end
 
     def self.in_datacenter?
-      File.directory?(CONFIG_DIR)
+      return @in_datacenter unless @in_datacenter.nil?
+      @in_datacenter = File.directory?(CONFIG_DIR)
     end
 
     # @yield Executes a block if in_datacenter?
