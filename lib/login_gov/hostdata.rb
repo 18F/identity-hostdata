@@ -36,7 +36,7 @@ module LoginGov
     end
 
     def self.in_datacenter?
-      return @in_datacenter unless @in_datacenter.nil?
+      return @in_datacenter if defined?(@in_datacenter)
       @in_datacenter = File.directory?(CONFIG_DIR)
     end
 
