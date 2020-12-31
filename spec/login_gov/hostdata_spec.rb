@@ -151,6 +151,51 @@ RSpec.describe LoginGov::Hostdata do
     end
   end
 
+  describe '.config' do
+    let(:config_data) do
+      {
+        description: 'the staging data',
+        default_attributes: {
+          login_dot_gov: {
+            idp_run_migrations: true,
+          },
+        },
+      }
+    end
+
+    context 'when /etc/login.gov exists (in a datacenter environment)' do
+      before { FileUtils.mkdir_p('/etc/login.gov') }
+
+      context 'when the info/env file exists' do
+        before do
+          FileUtils.mkdir_p('/etc/login.gov/info')
+          File.open('/etc/login.gov/info/env', 'w') { |f| f.puts 'staging' }
+          FileUtils.mkdir_p('/etc/login.gov/repos/identity-devops/kitchen/environments/')
+          File.open(
+            '/etc/login.gov/repos/identity-devops/kitchen/environments/staging.json', 'w'
+          ) { |f| f.puts config_data.to_json }
+        end
+
+        it 'parses the contents of the file' do
+          expect(LoginGov::Hostdata.config).to eq(config_data)
+        end
+      end
+
+      context 'when the info/env file does not exist' do
+        it 'blows up' do
+          expect { LoginGov::Hostdata.config }.
+            to raise_error(LoginGov::Hostdata::MissingConfigError)
+        end
+      end
+    end
+
+    context 'when /etc/login.gov does not exist (development environment)' do
+      it 'is an empty hash' do
+        expect(LoginGov::Hostdata.config).to eq({})
+      end
+    end
+  end
+
   describe '.s3' do
     before do
       stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').

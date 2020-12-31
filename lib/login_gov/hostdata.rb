@@ -1,6 +1,7 @@
 require "login_gov/hostdata/ec2"
 require "login_gov/hostdata/s3"
 require "login_gov/hostdata/version"
+require "json"
 
 module LoginGov
   module Hostdata
@@ -24,6 +25,22 @@ module LoginGov
         File.read(ENV_PATH).chomp
       rescue Errno::ENOENT => err
         raise MissingConfigError, err.message if in_datacenter?
+      end
+    end
+
+    # @return [Hash] parses the environment's config JSON
+    def self.config
+      @config ||= begin
+        config_path = File.join(
+          CONFIG_DIR,
+          'repos/identity-devops/kitchen/environments',
+          "#{env}.json"
+        )
+
+        JSON.parse(File.read(config_path), symbolize_names: true)
+      rescue Errno::ENOENT => err
+        raise MissingConfigError, err.message if in_datacenter?
+        {}
       end
     end
 

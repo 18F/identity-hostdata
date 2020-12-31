@@ -1,3 +1,7 @@
+# 0.4.3
+
+- Added `LoginGov::Hostdata.config`
+
 # 0.3.3
 
 - Use `Hash#fetch` in `LoginGov::Hostdata::EC2` so that EC2 metadata methods
