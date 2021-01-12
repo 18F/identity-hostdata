@@ -1,3 +1,15 @@
+# 0.4.3
+
+- Added `LoginGov::Hostdata.config`
+
+# 0.4.1
+
+- Patch memoization bug in `instance_role`
+
+# 0.4.0
+
+- Added `LoginGov::Hostdata.instance_role`
+
 # 0.3.3
 
 - Use `Hash#fetch` in `LoginGov::Hostdata::EC2` so that EC2 metadata methods
