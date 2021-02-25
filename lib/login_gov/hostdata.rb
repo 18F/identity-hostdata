@@ -1,7 +1,9 @@
+require "json"
 require "login_gov/hostdata/ec2"
+require "login_gov/hostdata/log_formatter"
 require "login_gov/hostdata/s3"
 require "login_gov/hostdata/version"
-require "json"
+require "login_gov/hostdata/railtie" if defined?(Rails::Railtie)
 
 module LoginGov
   module Hostdata
