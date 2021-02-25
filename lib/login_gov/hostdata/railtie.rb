@@ -11,6 +11,8 @@ require 'securerandom'
 module LoginGov
   module Hostdata
     class Railtie < Rails::Railtie
+      config.lograge.enabled = true
+
       config.log_formatter = if Rails.env.development?
         LoginGov::Hostdata::DevelopmentLogFormatter
       else
@@ -18,7 +20,6 @@ module LoginGov
       end
 
       if Rails.env.development? || Rails.env.production?
-        config.lograge.enabled = true
         config.lograge.formatter = Lograge::Formatters::Json.new
       end
 
