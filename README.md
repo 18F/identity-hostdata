@@ -8,6 +8,7 @@ Add this line to your application's Gemfile:
 
 ```ruby
 gem 'identity-hostdata', github: '18F/identity-hostdata'
+gem 'lograge' # if inside a Rails app, see below
 ```
 
 ## Usage
@@ -34,6 +35,30 @@ end
 ```
 
 [contract]: docs/contract.md
+
+### Usage in a Rails App
+
+This gem includes a Railtie that will configure logging to be more compatible with our log parsing.
+It relies on the `lograge` gem to silence some noisy logging, so your application must also include
+the lograge gem.
+
+It's also that apps add user data to the lograge payload by adding a method in `ApplicationController`:
+
+```ruby
+# application_controller.rb
+
+# for lograge
+def append_info_to_payload(payload)
+  payload[:user_id] = user.id # this depends on your application
+end
+
+```
+
+```ruby
+# config/environments/development.rb
+
+config.lograge.ignore_actions = ['Users::SessionsController#active']
+```
 
 ## Development
 

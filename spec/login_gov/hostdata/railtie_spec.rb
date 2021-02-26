@@ -22,7 +22,7 @@ RSpec.describe LoginGov::Hostdata::Railtie do
         transaction_id,
         controller: 'Users::SessionsController',
         action: 'new',
-        request: Rack::Request.new(headers),
+        request: ActionDispatch::Request.new(headers),
         params: { foo: 'bar' },
         headers: headers,
         path: '/',
@@ -34,7 +34,14 @@ RSpec.describe LoginGov::Hostdata::Railtie do
     let(:finish) { Time.zone.now }
     let(:transaction_id) { SecureRandom.uuid }
     let(:amzn_trace_id) { SecureRandom.hex }
-    let(:headers) { {} }
+    let(:headers) do
+      {
+        'X-Amzn-Trace-Id' => amzn_trace_id,
+        'HTTP_HOST' => 'host.example.com',
+        'HTTP_USER_AGENT' => 'Chrome 1234',
+        'action_dispatch.remote_ip' => '1.2.3.4',
+      }
+    end
     let(:now) { Time.zone.now }
 
     it 'adds in timestamp, uuid, and pid, trace_id and omits extra noise' do
@@ -45,12 +52,16 @@ RSpec.describe LoginGov::Hostdata::Railtie do
       expect(payload).to_not include(:params, :headers, :request, :response)
 
       expect(payload).to match(
-        timestamp: now.iso8601,
         uuid: /\A[0-9a-f-]+\Z/, # rough UUID regex
         pid: Process.pid,
         controller: 'Users::SessionsController',
         action: 'new',
         path: '/',
+        timestamp: now.iso8601,
+        host: 'host.example.com',
+        user_agent: 'Chrome 1234',
+        trace_id: amzn_trace_id,
+        ip: '1.2.3.4',
       )
     end
   end
