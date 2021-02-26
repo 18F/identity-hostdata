@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-RSpec.describe LoginGov::Hostdata::S3 do
-  let(:fake_s3) { LoginGov::Hostdata::FakeS3Client.new }
+RSpec.describe Identity::Hostdata::S3 do
+  let(:fake_s3) { Identity::Hostdata::FakeS3Client.new }
 
   around(:each) do |ex|
-    LoginGov::Hostdata.reset!
+    Identity::Hostdata.reset!
 
     @logger = Logger.new('/dev/null') # set up before FakeFS
 
@@ -18,7 +18,7 @@ RSpec.describe LoginGov::Hostdata::S3 do
   let(:region) { 'us-west-2' }
   let(:logger) { @logger }
   subject(:s3) do
-    LoginGov::Hostdata::S3.new(
+    Identity::Hostdata::S3.new(
       bucket: bucket,
       env: env,
       region: region,
@@ -64,7 +64,7 @@ RSpec.describe LoginGov::Hostdata::S3 do
 
     it 'logs which files its downloading' do
       expect(logger).to receive(:info).with(
-        "LoginGov::Hostdata::S3: downloading s3://some-bucket-name/staging/v1/idp/some_config.yml to #{local_config_file}"
+        "Identity::Hostdata::S3: downloading s3://some-bucket-name/staging/v1/idp/some_config.yml to #{local_config_file}"
       )
 
       download_configs

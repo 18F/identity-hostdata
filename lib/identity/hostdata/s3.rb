@@ -3,7 +3,7 @@ require 'fileutils'
 require 'json'
 require 'logger'
 
-module LoginGov
+module Identity
   module Hostdata
     class S3
       attr_reader :bucket, :env, :region, :logger

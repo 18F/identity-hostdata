@@ -1,12 +1,12 @@
 require "spec_helper"
 
-RSpec.describe LoginGov::Hostdata do
+RSpec.describe Identity::Hostdata do
   it "has a version number" do
-    expect(LoginGov::Hostdata::VERSION).not_to be nil
+    expect(Identity::Hostdata::VERSION).not_to be nil
   end
 
   around(:each) do |ex|
-    LoginGov::Hostdata.reset!
+    Identity::Hostdata.reset!
 
     FakeFS.with_fresh do
       ex.run
@@ -24,21 +24,21 @@ RSpec.describe LoginGov::Hostdata do
         end
 
         it 'reads the contents of the file' do
-          expect(LoginGov::Hostdata.domain).to eq('identitysandbox.gov')
+          expect(Identity::Hostdata.domain).to eq('identitysandbox.gov')
         end
       end
 
       context 'when the info/domain file does not exist' do
         it 'blows up' do
-          expect { LoginGov::Hostdata.domain }.
-            to raise_error(LoginGov::Hostdata::MissingConfigError)
+          expect { Identity::Hostdata.domain }.
+            to raise_error(Identity::Hostdata::MissingConfigError)
         end
       end
     end
 
     context 'when /etc/login.gov does not exist (development environment)' do
       it 'is nil' do
-        expect(LoginGov::Hostdata.domain).to eq(nil)
+        expect(Identity::Hostdata.domain).to eq(nil)
       end
     end
   end
@@ -54,21 +54,21 @@ RSpec.describe LoginGov::Hostdata do
         end
 
         it 'reads the contents of the file' do
-          expect(LoginGov::Hostdata.env).to eq('staging')
+          expect(Identity::Hostdata.env).to eq('staging')
         end
       end
 
       context 'when the info/env file does not exist' do
         it 'blows up' do
-          expect { LoginGov::Hostdata.env }.
-            to raise_error(LoginGov::Hostdata::MissingConfigError)
+          expect { Identity::Hostdata.env }.
+            to raise_error(Identity::Hostdata::MissingConfigError)
         end
       end
     end
 
     context 'when /etc/login.gov does not exist (development environment)' do
       it 'is nil' do
-        expect(LoginGov::Hostdata.env).to eq(nil)
+        expect(Identity::Hostdata.env).to eq(nil)
       end
     end
   end
@@ -84,21 +84,21 @@ RSpec.describe LoginGov::Hostdata do
         end
 
         it 'reads the contents of the file' do
-          expect(LoginGov::Hostdata.instance_role).to eq('migration')
+          expect(Identity::Hostdata.instance_role).to eq('migration')
         end
       end
 
       context 'when the info/role file does not exist' do
         it 'blows up' do
-          expect { LoginGov::Hostdata.instance_role }.
-            to raise_error(LoginGov::Hostdata::MissingConfigError)
+          expect { Identity::Hostdata.instance_role }.
+            to raise_error(Identity::Hostdata::MissingConfigError)
         end
       end
     end
 
     context 'when /etc/login.gov does not exist (development environment)' do
       it 'is nil' do
-        expect(LoginGov::Hostdata.instance_role).to eq(nil)
+        expect(Identity::Hostdata.instance_role).to eq(nil)
       end
     end
   end
@@ -107,11 +107,11 @@ RSpec.describe LoginGov::Hostdata do
     it 'is true when the /etc/login.gov directory exists' do
       FileUtils.mkdir_p('/etc/login.gov')
 
-      expect(LoginGov::Hostdata.in_datacenter?).to eq(true)
+      expect(Identity::Hostdata.in_datacenter?).to eq(true)
     end
 
     it 'is false when the /etc/login.gov does not exist' do
-      expect(LoginGov::Hostdata.in_datacenter?).to eq(false)
+      expect(Identity::Hostdata.in_datacenter?).to eq(false)
     end
   end
 
@@ -120,16 +120,16 @@ RSpec.describe LoginGov::Hostdata do
       before { FileUtils.mkdir_p('/etc/login.gov') }
 
       it 'blows up without a block' do
-        expect { LoginGov::Hostdata.in_datacenter }.to raise_error(LocalJumpError)
+        expect { Identity::Hostdata.in_datacenter }.to raise_error(LocalJumpError)
       end
 
       it 'yields to its block with itself' do
         called = false
 
-        LoginGov::Hostdata.in_datacenter do |hostdata|
+        Identity::Hostdata.in_datacenter do |hostdata|
           called = true
 
-          expect(hostdata).to eq(LoginGov::Hostdata)
+          expect(hostdata).to eq(Identity::Hostdata)
         end
 
         expect(called).to eq(true)
@@ -138,13 +138,13 @@ RSpec.describe LoginGov::Hostdata do
 
     context 'when the /etc/login.gov does not exist' do
       it 'blows up without a block' do
-        expect { LoginGov::Hostdata.in_datacenter }.to raise_error(LocalJumpError)
+        expect { Identity::Hostdata.in_datacenter }.to raise_error(LocalJumpError)
       end
 
       it 'does not call its block (no-op)' do
         called = false
 
-        LoginGov::Hostdata.in_datacenter { called = true }
+        Identity::Hostdata.in_datacenter { called = true }
 
         expect(called).to eq(false)
       end
@@ -177,21 +177,21 @@ RSpec.describe LoginGov::Hostdata do
         end
 
         it 'parses the contents of the file' do
-          expect(LoginGov::Hostdata.config).to eq(config_data)
+          expect(Identity::Hostdata.config).to eq(config_data)
         end
       end
 
       context 'when the info/env file does not exist' do
         it 'blows up' do
-          expect { LoginGov::Hostdata.config }.
-            to raise_error(LoginGov::Hostdata::MissingConfigError)
+          expect { Identity::Hostdata.config }.
+            to raise_error(Identity::Hostdata::MissingConfigError)
         end
       end
     end
 
     context 'when /etc/login.gov does not exist (development environment)' do
       it 'is an empty hash' do
-        expect(LoginGov::Hostdata.config).to eq({})
+        expect(Identity::Hostdata.config).to eq({})
       end
     end
   end
@@ -208,7 +208,7 @@ RSpec.describe LoginGov::Hostdata do
       File.open('/etc/login.gov/info/env', 'w') { |f| f.puts 'int' }
     end
 
-    subject(:s3) { LoginGov::Hostdata.s3 }
+    subject(:s3) { Identity::Hostdata.s3 }
 
     it 'builds an S3 instance with a bucket name based on EC2 instance data' do
       expect(s3.env).to eq('int')
@@ -217,9 +217,9 @@ RSpec.describe LoginGov::Hostdata do
     end
 
     context 'with an s3_client param' do
-      let(:s3_client) { LoginGov::Hostdata::FakeS3Client.new }
+      let(:s3_client) { Identity::Hostdata::FakeS3Client.new }
 
-      subject(:s3) { LoginGov::Hostdata.s3(s3_client: s3_client) }
+      subject(:s3) { Identity::Hostdata.s3(s3_client: s3_client) }
 
       it 'passes s3_client through' do
         expect(s3.send(:s3_client)).to eq(s3_client)
@@ -229,7 +229,7 @@ RSpec.describe LoginGov::Hostdata do
     context 'with a logger param' do
       let(:logger) { Logger.new(STDOUT) }
 
-      subject(:s3) { LoginGov::Hostdata.s3(logger: logger) }
+      subject(:s3) { Identity::Hostdata.s3(logger: logger) }
 
       it 'passes the logger through' do
         expect(s3.logger).to eq(logger)
@@ -239,15 +239,15 @@ RSpec.describe LoginGov::Hostdata do
 
   describe '.logger' do
     it 'has a default value' do
-      expect(LoginGov::Hostdata.logger).to be
+      expect(Identity::Hostdata.logger).to be
     end
 
     it 'has a setter' do
       logger = Logger.new(STDOUT)
 
-      LoginGov::Hostdata.logger = logger
+      Identity::Hostdata.logger = logger
 
-      expect(LoginGov::Hostdata.logger).to eq(logger)
+      expect(Identity::Hostdata.logger).to eq(logger)
     end
   end
 end
