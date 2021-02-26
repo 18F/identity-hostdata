@@ -5,6 +5,10 @@ rescue LoadError => e
   raise e
 end
 
+if Gem::Version.new(Rails::VERSION::STRING) < Gem::Version.new('6.1')
+  raise 'LoginGov::Hostdata::Railtie needs rails >= 6.1 to log request info, please upgrade'
+end
+
 require 'login_gov/hostdata/log_formatter'
 require 'securerandom'
 
