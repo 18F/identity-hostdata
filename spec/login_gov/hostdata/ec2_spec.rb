@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-RSpec.describe LoginGov::Hostdata::EC2 do
+RSpec.describe Identity::Hostdata::EC2 do
   describe '.load' do
-    subject(:load) { LoginGov::Hostdata::EC2.load }
+    subject(:load) { Identity::Hostdata::EC2.load }
 
     it 'loads data from the magic ECS URL' do
       stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
@@ -39,7 +39,7 @@ RSpec.describe LoginGov::Hostdata::EC2 do
     }
   end
 
-  subject(:ec2) { LoginGov::Hostdata::EC2.new(document) }
+  subject(:ec2) { Identity::Hostdata::EC2.new(document) }
 
   describe '#region' do
     subject(:region) { ec2.region }

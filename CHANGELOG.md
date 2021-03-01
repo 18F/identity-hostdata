@@ -1,3 +1,7 @@
+# 1.0.0
+
+- Rename `LoginGov` namespace back to `Identity` (big breaking change)
+
 # 0.4.3
 
 - Added `LoginGov::Hostdata.config`

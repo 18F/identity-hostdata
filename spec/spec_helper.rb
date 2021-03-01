@@ -3,7 +3,7 @@ require "identity/hostdata"
 require "pp"
 require "fakefs/safe"
 require "fakefs/spec_helpers"
-require "login_gov/hostdata/fake_s3_client"
+require "identity/hostdata/fake_s3_client"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

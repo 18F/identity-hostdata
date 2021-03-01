@@ -1,6 +1,6 @@
 require 'net/http'
 
-module LoginGov
+module Identity
   module Hostdata
     # Class to wrap accessing the EC2 metadata service
     class EC2

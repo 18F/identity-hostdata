@@ -1,4 +1,4 @@
-# LoginGov::Hostdata (`identity-hostdata`)
+# Identity::Hostdata (`identity-hostdata`)
 
 A gem to help read configuration from login.gov infrastructure, according to the [login.gov infrastructure contract][contract].
 
@@ -17,7 +17,7 @@ Use this gem to access config data on a per-host basis. The config data is read 
 ```ruby
 require 'identity/hostdata'
 
-LoginGov::Hostdata.domain
+Identity::Hostdata.domain
 # => "login.gov"
 ```
 
@@ -26,7 +26,7 @@ Download configs from S3:
 ```ruby
 root = File.expand_path('../../', __FILE__)
 
-LoginGov::Hostdata.in_datacenter do |hostdata|
+Identity::Hostdata.in_datacenter do |hostdata|
   hostdata.s3.download_configs(
     '/%{env}/v1/idp/database.yml' => File.join(root, 'config/database_s3.yml')
   )

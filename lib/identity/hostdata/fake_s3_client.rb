@@ -1,7 +1,7 @@
-module LoginGov
+module Identity
   module Hostdata
     # In-memory imitation of Aws::S3::Client for use in tests
-    # Not required by default, use `require 'login_gov/hostdata/fake_s3_client'`
+    # Not required by default, use `require 'identity/hostdata/fake_s3_client'`
     class FakeS3Client
       def get_object(bucket:, key:, response_target:)
         File.open(response_target, 'wb') do |file|
