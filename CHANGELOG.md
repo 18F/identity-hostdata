@@ -1,3 +1,8 @@
+# 1.0.1
+
+- Add backwards-compatible `LoginGov` namespace back to smooth out
+  transition in config repo
+
 # 1.0.0
 
 - Rename `LoginGov` namespace back to `Identity` (big breaking change)
