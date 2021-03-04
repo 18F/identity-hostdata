@@ -13,6 +13,19 @@ RSpec.describe Identity::Hostdata do
     end
   end
 
+  describe '.setup_settings!' do
+    it 'sets settings' do
+      expect do
+        Identity::Hostdata.setup_settings!(
+          configuration: { 'some_key' => 'some_value'},
+          rails_env: 'test',
+        )
+      end.to(
+        change { Identity::Hostdata.settings }.from(nil).to(kind_of(Identity::Hostdata::Settings))
+      )
+    end
+  end
+
   describe '.domain' do
     context 'when /etc/login.gov exists (in a datacenter environment)' do
       before { FileUtils.mkdir_p('/etc/login.gov') }

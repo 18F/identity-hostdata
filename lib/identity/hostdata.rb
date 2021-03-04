@@ -1,5 +1,6 @@
 require "identity/hostdata/ec2"
 require "identity/hostdata/s3"
+require "identity/hostdata/settings"
 require "identity/hostdata/version"
 require "json"
 
@@ -12,6 +13,14 @@ module Identity
     ENV_PATH = File.join(CONFIG_DIR, 'info/env')
     INSTANCE_ROLE_PATH = File.join(CONFIG_DIR, 'info/role')
 
+    # @param [Hash] configuration
+    # @param [String] rails_env from +Rails.env+
+    # Sets up Identity::Hosdata.settings, should be called before that is accessed
+    def self.setup_settings!(configuration:, rails_env:)
+      @settings = Settings.new(configuration: configuration, rails_env: rails_env)
+    end
+
+    # @return [String,nil]
     def self.domain
       @domain ||= begin
         File.read(DOMAIN_PATH).chomp
@@ -20,6 +29,7 @@ module Identity
       end
     end
 
+    # @return [String,nil]
     def self.env
       @env ||= begin
         File.read(ENV_PATH).chomp
@@ -44,6 +54,7 @@ module Identity
       end
     end
 
+    # @return [String,nil]
     def self.instance_role
       @instance_role ||= begin
         File.read(INSTANCE_ROLE_PATH).chomp
@@ -52,6 +63,7 @@ module Identity
       end
     end
 
+    # @return [Boolean]
     def self.in_datacenter?
       return @in_datacenter if defined?(@in_datacenter)
       @in_datacenter = File.directory?(CONFIG_DIR)
@@ -86,6 +98,8 @@ module Identity
       alias_method :default_logger, :logger
 
       attr_writer :logger
+
+      attr_reader :settings
     end
 
     # @api private
