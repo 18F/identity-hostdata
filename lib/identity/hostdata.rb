@@ -15,7 +15,7 @@ module Identity
 
     # @param [Hash] configuration
     # @param [String] rails_env from +Rails.env+
-    # Sets up Identity::Hosdata.settings, should be called before that is accessed
+    # Sets up Identity::Hostdata.settings, should be called before that is accessed
     def self.setup_settings!(configuration:, rails_env:)
       @settings = Settings.new(configuration: configuration, rails_env: rails_env)
     end
