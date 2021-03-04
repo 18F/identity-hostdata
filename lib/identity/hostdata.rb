@@ -20,7 +20,7 @@ module Identity
       @settings = Settings.new(configuration: configuration, rails_env: rails_env)
     end
 
-    # @return [String,nil]
+    # @return [String]
     def self.domain
       @domain ||= begin
         File.read(DOMAIN_PATH).chomp
@@ -29,7 +29,7 @@ module Identity
       end
     end
 
-    # @return [String,nil]
+    # @return [String]
     def self.env
       @env ||= begin
         File.read(ENV_PATH).chomp
@@ -54,7 +54,7 @@ module Identity
       end
     end
 
-    # @return [String,nil]
+    # @return [String]
     def self.instance_role
       @instance_role ||= begin
         File.read(INSTANCE_ROLE_PATH).chomp
