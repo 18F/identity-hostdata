@@ -10,6 +10,7 @@ RSpec.describe Identity::Hostdata::Settings do
       },
     }
   end
+  let(:write_to_env) { false }
 
   before do
     stub_const('ENV', {})
@@ -19,6 +20,7 @@ RSpec.describe Identity::Hostdata::Settings do
     Identity::Hostdata::Settings.new(
       configuration: configuration,
       rails_env: rails_env,
+      write_to_env: write_to_env,
     )
   end
 
@@ -72,8 +74,20 @@ RSpec.describe Identity::Hostdata::Settings do
       end
     end
 
-    it 'sets ENV' do
-      expect { settings }.to(change { ENV['test_key'] }.to('value'))
+    context 'when write_to_env is true' do
+      let(:write_to_env) { true }
+
+      it 'sets ENV' do
+        expect { settings }.to(change { ENV['test_key'] }.to('value'))
+      end
+    end
+
+    context 'when write_to_env is false' do
+      let(:write_to_env) { false }
+
+      it 'sets ENV' do
+        expect { settings }.to_not(change { ENV['test_key'] })
+      end
     end
   end
 

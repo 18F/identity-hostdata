@@ -15,9 +15,14 @@ module Identity
 
     # @param [Hash] configuration
     # @param [String] rails_env from +Rails.env+
+    # @param [Boolean] write_to_env whether or not we should write values from the config to ENV
     # Sets up Identity::Hostdata.settings, should be called before that is accessed
-    def self.setup_settings!(configuration:, rails_env:)
-      @settings = Settings.new(configuration: configuration, rails_env: rails_env)
+    def self.setup_settings!(configuration:, rails_env:, write_to_env: false)
+      @settings = Settings.new(
+        configuration: configuration,
+        rails_env: rails_env,
+        write_to_env: write_to_env
+      )
     end
 
     # @return [String]

@@ -7,7 +7,8 @@ module Identity
 
       # @param [Hash] configuration
       # @param [String] rails_env from +Rails.env+
-      def initialize(configuration:, rails_env:)
+      # @param [Boolean] write_to_env whether or not we should write values from the config to ENV
+      def initialize(configuration:, rails_env:, write_to_env: false)
         @config = {}
 
         keys = Set.new(configuration.keys - %w[production development test])
@@ -25,7 +26,7 @@ module Identity
             @config[key] = env_value
           else
             @config[key] = value
-            ENV[key] = value
+            ENV[key] = value if write_to_env
           end
         end
       end
