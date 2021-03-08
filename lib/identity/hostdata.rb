@@ -1,6 +1,5 @@
 require "identity/hostdata/ec2"
 require "identity/hostdata/s3"
-require "identity/hostdata/settings"
 require "identity/hostdata/version"
 require "json"
 
@@ -12,18 +11,6 @@ module Identity
     DOMAIN_PATH = File.join(CONFIG_DIR, 'info/domain')
     ENV_PATH = File.join(CONFIG_DIR, 'info/env')
     INSTANCE_ROLE_PATH = File.join(CONFIG_DIR, 'info/role')
-
-    # @param [Hash] configuration
-    # @param [String] rails_env from +Rails.env+
-    # @param [Boolean] write_to_env whether or not we should write values from the config to ENV
-    # Sets up Identity::Hostdata.settings, should be called before that is accessed
-    def self.setup_settings!(configuration:, rails_env:, write_to_env: false)
-      @settings = Settings.new(
-        configuration: configuration,
-        rails_env: rails_env,
-        write_to_env: write_to_env
-      )
-    end
 
     # @return [String]
     def self.domain
@@ -103,8 +90,6 @@ module Identity
       alias_method :default_logger, :logger
 
       attr_writer :logger
-
-      attr_reader :settings
     end
 
     # @api private
