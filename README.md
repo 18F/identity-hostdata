@@ -27,9 +27,12 @@ Download configs from S3:
 root = File.expand_path('../../', __FILE__)
 
 Identity::Hostdata.in_datacenter do |hostdata|
-  hostdata.s3.download_configs(
-    '/%{env}/v1/idp/database.yml' => File.join(root, 'config/database_s3.yml')
+  # Download the config and write to disk
+  hostdata.app_secrets_s3.download_config(
+    '/%{env}/v1/idp/database.yml', File.join(root, 'config/database_s3.yml')
   )
+  # Read the config into the `cert` var
+  cert = hostdata.secrets_s3.read_config('/%{env}/oidc.cert')
 end
 ```
 
@@ -54,4 +57,3 @@ This project is in the worldwide [public domain](LICENSE.md). As stated in [CONT
 > This project is in the public domain within the United States, and copyright and related rights in the work worldwide are waived through the [CC0 1.0 Universal public domain dedication](https://creativecommons.org/publicdomain/zero/1.0/).
 >
 > All contributions to this project will be released under the CC0 dedication. By submitting a pull request, you are agreeing to comply with this waiver of copyright interest.
-

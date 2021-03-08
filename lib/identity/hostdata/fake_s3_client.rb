@@ -3,9 +3,18 @@ module Identity
     # In-memory imitation of Aws::S3::Client for use in tests
     # Not required by default, use `require 'identity/hostdata/fake_s3_client'`
     class FakeS3Client
-      def get_object(bucket:, key:, response_target:)
-        File.open(response_target, 'wb') do |file|
-          file.write(objects[full_key(bucket, key)])
+      GetObjectResponse = Struct.new(:body)
+
+      def get_object(bucket:, key:, response_target: nil)
+        object_contents = objects[full_key(bucket, key)]
+        raise Aws::S3::Errors::NoSuchKey.new('a', 'b') if object_contents.nil?
+
+        if response_target
+          File.open(response_target, 'wb') do |file|
+            file.write(object_contents)
+          end
+        else
+          GetObjectResponse.new(StringIO.new(object_contents))
         end
       end
 
