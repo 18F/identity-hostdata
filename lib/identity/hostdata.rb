@@ -28,7 +28,7 @@ module Identity
     # @return [String]
     def self.domain
       @domain ||= begin
-        File.read(DOMAIN_PATH).chomp
+        File.read(File.join(root.to_s, DOMAIN_PATH)).chomp
       rescue Errno::ENOENT => err
         raise MissingConfigError, err.message if in_datacenter?
       end
@@ -37,7 +37,7 @@ module Identity
     # @return [String]
     def self.env
       @env ||= begin
-        File.read(ENV_PATH).chomp
+        File.read(File.join(root.to_s, ENV_PATH)).chomp
       rescue Errno::ENOENT => err
         raise MissingConfigError, err.message if in_datacenter?
       end
@@ -47,6 +47,7 @@ module Identity
     def self.config
       @config ||= begin
         config_path = File.join(
+          root.to_s,
           CONFIG_DIR,
           'repos/identity-devops/kitchen/environments',
           "#{env}.json"
@@ -62,7 +63,7 @@ module Identity
     # @return [String]
     def self.instance_role
       @instance_role ||= begin
-        File.read(INSTANCE_ROLE_PATH).chomp
+        File.read(File.join(root.to_s, INSTANCE_ROLE_PATH)).chomp
       rescue Errno::ENOENT => err
         raise MissingConfigError, err.message if in_datacenter?
       end
@@ -71,7 +72,7 @@ module Identity
     # @return [Boolean]
     def self.in_datacenter?
       return @in_datacenter if defined?(@in_datacenter)
-      @in_datacenter = File.directory?(CONFIG_DIR)
+      @in_datacenter = File.directory?(File.join(root.to_s, CONFIG_DIR))
     end
 
     # @yield Executes a block if in_datacenter?
@@ -101,6 +102,8 @@ module Identity
 
     class << self
       alias_method :default_logger, :logger
+
+      attr_accessor :root
 
       attr_writer :logger
 
