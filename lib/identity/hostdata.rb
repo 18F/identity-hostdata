@@ -81,7 +81,7 @@ module Identity
       yield self if in_datacenter?
     end
 
-    # @return [S3] An S3 object onfigured to use the app-secrets bucket
+    # @return [S3] An S3 object configured to use the app-secrets bucket
     def self.app_secrets_s3(logger: default_logger, s3_client: nil)
       ec2 = Identity::Hostdata::EC2.load
       bucket = "login-gov.app-secrets.#{ec2.account_id}-#{ec2.region}"
@@ -95,7 +95,7 @@ module Identity
       )
     end
 
-    # @return [S3] An S3 object onfigured to use the secrets bucket
+    # @return [S3] An S3 object configured to use the secrets bucket
     def self.secrets_s3(logger: default_logger, s3_client: nil)
       ec2 = Identity::Hostdata::EC2.load
       bucket = "login-gov.secrets.#{ec2.account_id}-#{ec2.region}"
