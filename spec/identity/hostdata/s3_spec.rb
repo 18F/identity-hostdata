@@ -1,12 +1,13 @@
 require 'spec_helper'
+require 'pry-byebug'
 
 RSpec.describe Identity::Hostdata::S3 do
-  let(:fake_s3) { Identity::Hostdata::FakeS3Client.new }
-
   around(:each) do |ex|
     Identity::Hostdata.reset!
 
-    @logger = Logger.new('/dev/null') # set up before FakeFS
+    # set up before FakeFS
+    @logger = Logger.new('/dev/null')
+    @fake_s3 = Aws::S3::Client.new(stub_responses: true)
 
     FakeFS.with_fresh do
       ex.run
@@ -17,6 +18,7 @@ RSpec.describe Identity::Hostdata::S3 do
   let(:env) { 'staging' }
   let(:region) { 'us-west-2' }
   let(:logger) { @logger }
+  let(:fake_s3) { @fake_s3 }
   subject(:s3) do
     Identity::Hostdata::S3.new(
       bucket: bucket,
@@ -37,27 +39,21 @@ RSpec.describe Identity::Hostdata::S3 do
     let(:config_body) { 'test config data' }
 
     before do
-      fake_s3.put_object(
-        bucket: bucket,
-        key: "/#{env}/v1/idp/some_config.yml",
-        body: config_body
+      @fake_s3.stub_responses(
+        :get_object,
+        { body: config_body }
       )
     end
 
-    it 'interpolates filenames, downloads from s3 and writes them to the local path' do
+    it 'builds the key, downloads file from s3 and writes them to the local path' do
+      expect(fake_s3).to receive(:get_object).with(
+        bucket: bucket,
+        key: "#{env}/v1/idp/some_config.yml"
+      ).and_call_original
+
       download_config
 
       expect(File.read(local_config_file)).to eq(config_body)
-    end
-
-    it 'chops off leading slashes from s3 paths' do
-      expect(fake_s3).to receive(:get_object).with(
-        bucket: bucket,
-        key: 'staging/v1/idp/some_config.yml',
-        response_target: local_config_file
-      )
-
-      download_config
     end
 
     it 'logs which files its downloading' do
@@ -76,33 +72,27 @@ RSpec.describe Identity::Hostdata::S3 do
 
     let(:config_body) { 'test config data' }
 
-    before do
-      fake_s3.put_object(
-        bucket: bucket,
-        key: "/#{env}/v1/idp/some_config.yml",
-        body: config_body
-      )
-    end
+    it 'builds the key, downloads the file from s3 and returns the contents as a string' do
+      @fake_s3.stub_responses(:get_object, { body: config_body })
 
-    it 'interpolates filenames, downloads from s3 and returns the contents as a string' do
+      expect(fake_s3).to receive(:get_object).with(
+        bucket: bucket,
+        key: "#{env}/v1/idp/some_config.yml"
+      ).and_call_original
+
       expect(read_config).to eq(config_body)
     end
 
     it 'returns nil if the object does not exist in s3' do
+      @fake_s3.stub_responses(:get_object, 'NoSuchKey')
+
       result = s3.read_config('/no/such/key.yml')
       expect(result).to eq(nil)
     end
 
-    it 'chops off leading slashes from s3 paths' do
-      expect(fake_s3).to receive(:get_object).with(
-        bucket: bucket,
-        key: 'staging/v1/idp/some_config.yml',
-      ).and_call_original
+    it 'logs which files it is reading' do
+      @fake_s3.stub_responses(:get_object, { body: config_body })
 
-      read_config
-    end
-
-    it 'logs which files its reading' do
       expect(logger).to receive(:info).with(
         "Identity::Hostdata::S3: reading s3://some-bucket-name/staging/v1/idp/some_config.yml"
       )

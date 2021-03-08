@@ -244,7 +244,7 @@ RSpec.describe Identity::Hostdata do
     end
 
     context 'with an s3_client param' do
-      let(:s3_client) { Identity::Hostdata::FakeS3Client.new }
+      let(:s3_client) { Aws::S3::Client.new(stub_responses: true) }
 
       subject(:s3) { Identity::Hostdata.app_secrets_s3(s3_client: s3_client) }
 
@@ -285,7 +285,7 @@ RSpec.describe Identity::Hostdata do
     end
 
     context 'with an s3_client param' do
-      let(:s3_client) { Identity::Hostdata::FakeS3Client.new }
+      let(:s3_client) {  Aws::S3::Client.new(stub_responses: true) }
 
       subject(:s3) { Identity::Hostdata.secrets_s3(s3_client: s3_client) }
 
