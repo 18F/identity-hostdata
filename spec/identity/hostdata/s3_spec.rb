@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'pry-byebug'
 
 RSpec.describe Identity::Hostdata::S3 do
   around(:each) do |ex|
@@ -29,11 +28,11 @@ RSpec.describe Identity::Hostdata::S3 do
     )
   end
 
-  describe '#download_config' do
+  describe '#download_file' do
     let(:local_config_file) { '/srv/idp/current/config/config.yml' }
 
-    subject(:download_config) do
-      s3.download_config('/%{env}/v1/idp/some_config.yml', local_config_file)
+    subject(:download_file) do
+      s3.download_file('/%{env}/v1/idp/some_config.yml', local_config_file)
     end
 
     let(:config_body) { 'test config data' }
@@ -51,7 +50,7 @@ RSpec.describe Identity::Hostdata::S3 do
         key: "#{env}/v1/idp/some_config.yml"
       ).and_call_original
 
-      download_config
+      download_file
 
       expect(File.read(local_config_file)).to eq(config_body)
     end
@@ -61,13 +60,13 @@ RSpec.describe Identity::Hostdata::S3 do
         "Identity::Hostdata::S3: downloading s3://some-bucket-name/staging/v1/idp/some_config.yml to #{local_config_file}"
       )
 
-      download_config
+      download_file
     end
   end
 
-  describe '#read_config' do
-    subject(:read_config) do
-      s3.read_config('/%{env}/v1/idp/some_config.yml')
+  describe '#read_file' do
+    subject(:read_file) do
+      s3.read_file('/%{env}/v1/idp/some_config.yml')
     end
 
     let(:config_body) { 'test config data' }
@@ -80,13 +79,13 @@ RSpec.describe Identity::Hostdata::S3 do
         key: "#{env}/v1/idp/some_config.yml"
       ).and_call_original
 
-      expect(read_config).to eq(config_body)
+      expect(read_file).to eq(config_body)
     end
 
     it 'returns nil if the object does not exist in s3' do
       @fake_s3.stub_responses(:get_object, 'NoSuchKey')
 
-      result = s3.read_config('/no/such/key.yml')
+      result = s3.read_file('/no/such/key.yml')
       expect(result).to eq(nil)
     end
 
@@ -97,7 +96,7 @@ RSpec.describe Identity::Hostdata::S3 do
         "Identity::Hostdata::S3: reading s3://some-bucket-name/staging/v1/idp/some_config.yml"
       )
 
-      read_config
+      read_file
     end
   end
 end

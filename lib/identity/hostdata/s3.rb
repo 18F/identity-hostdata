@@ -16,7 +16,7 @@ module Identity
         @s3_client = s3_client
       end
 
-      def download_config(s3_path, local_path)
+      def download_file(s3_path, local_path)
         key = build_key(s3_path)
 
         logger && logger.info("#{self.class}: downloading s3://#{bucket}/#{key} to #{local_path}")
@@ -25,7 +25,7 @@ module Identity
         stream_s3_object_to_file(s3_response, local_path)
       end
 
-      def read_config(s3_path)
+      def read_file(s3_path)
         key = build_key(s3_path)
 
         logger && logger.info("#{self.class}: reading s3://#{bucket}/#{key}")
