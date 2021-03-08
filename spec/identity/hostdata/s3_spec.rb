@@ -6,9 +6,11 @@ RSpec.describe Identity::Hostdata::S3 do
   around(:each) do |ex|
     Identity::Hostdata.reset!
 
-    @logger = Logger.new('/dev/null') # set up before FakeFS
+    @logger = Logger.new('/dev/null')
 
-    FakeFS.with_fresh do
+    Dir.mktmpdir do |root|
+      @root = root
+      Identity::Hostdata.root = root
       ex.run
     end
   end
@@ -28,7 +30,7 @@ RSpec.describe Identity::Hostdata::S3 do
   end
 
   describe '#download_configs' do
-    let(:local_config_file) { '/srv/idp/current/config/config.yml' }
+    let(:local_config_file) { "#{@root}/srv/idp/current/config/config.yml" }
 
     subject(:download_configs) do
       s3.download_configs(

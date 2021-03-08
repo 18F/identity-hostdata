@@ -1,8 +1,6 @@
 require "bundler/setup"
 require "identity/hostdata"
 require "pp"
-require "fakefs/safe"
-require "fakefs/spec_helpers"
 require "identity/hostdata/fake_s3_client"
 
 RSpec.configure do |config|
@@ -15,8 +13,6 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
-
-  config.include FakeFS::SpecHelpers, fakefs: true
 end
 
 require 'webmock/rspec'
