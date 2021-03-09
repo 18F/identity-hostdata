@@ -198,7 +198,7 @@ RSpec.describe Identity::Hostdata do
     end
   end
 
-  describe '.s3' do
+  describe 'app_secrets_s3' do
     before do
       stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
         to_return(body: {
@@ -210,18 +210,18 @@ RSpec.describe Identity::Hostdata do
       File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'int' }
     end
 
-    subject(:s3) { Identity::Hostdata.s3 }
+    subject(:s3) { Identity::Hostdata.app_secrets_s3 }
 
-    it 'builds an S3 instance with a bucket name based on EC2 instance data' do
+    it 'creates an S3 instance with the app secrets bucket' do
       expect(s3.env).to eq('int')
       expect(s3.region).to eq('us-east-1')
       expect(s3.bucket).to eq('login-gov.app-secrets.12345-us-east-1')
     end
 
     context 'with an s3_client param' do
-      let(:s3_client) { Identity::Hostdata::FakeS3Client.new }
+      let(:s3_client) { Aws::S3::Client.new(stub_responses: true) }
 
-      subject(:s3) { Identity::Hostdata.s3(s3_client: s3_client) }
+      subject(:s3) { Identity::Hostdata.app_secrets_s3(s3_client: s3_client) }
 
       it 'passes s3_client through' do
         expect(s3.send(:s3_client)).to eq(s3_client)
@@ -231,7 +231,48 @@ RSpec.describe Identity::Hostdata do
     context 'with a logger param' do
       let(:logger) { Logger.new(STDOUT) }
 
-      subject(:s3) { Identity::Hostdata.s3(logger: logger) }
+      subject(:s3) { Identity::Hostdata.app_secrets_s3(logger: logger) }
+
+      it 'passes the logger through' do
+        expect(s3.logger).to eq(logger)
+      end
+    end
+  end
+
+  describe 'secrets_s3' do
+    before do
+      stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
+        to_return(body: {
+          'accountId' => '12345',
+          'region' => 'us-east-1',
+        }.to_json)
+
+      FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
+      File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'int' }
+    end
+
+    subject(:s3) { Identity::Hostdata.secrets_s3 }
+
+    it 'creates an S3 instance with the secrets bucket' do
+      expect(s3.env).to eq('int')
+      expect(s3.region).to eq('us-east-1')
+      expect(s3.bucket).to eq('login-gov.secrets.12345-us-east-1')
+    end
+
+    context 'with an s3_client param' do
+      let(:s3_client) {  Aws::S3::Client.new(stub_responses: true) }
+
+      subject(:s3) { Identity::Hostdata.secrets_s3(s3_client: s3_client) }
+
+      it 'passes s3_client through' do
+        expect(s3.send(:s3_client)).to eq(s3_client)
+      end
+    end
+
+    context 'with a logger param' do
+      let(:logger) { Logger.new(STDOUT) }
+
+      subject(:s3) { Identity::Hostdata.secrets_s3(logger: logger) }
 
       it 'passes the logger through' do
         expect(s3.logger).to eq(logger)

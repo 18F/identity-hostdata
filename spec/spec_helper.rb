@@ -1,7 +1,6 @@
 require "bundler/setup"
 require "identity/hostdata"
 require "pp"
-require "identity/hostdata/fake_s3_client"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
