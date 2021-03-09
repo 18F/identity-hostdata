@@ -15,33 +15,6 @@ RSpec.describe Identity::Hostdata do
     end
   end
 
-  describe '.setup_settings!' do
-    before do
-      stub_const('ENV', {})
-    end
-
-    it 'sets settings' do
-      expect do
-        Identity::Hostdata.setup_settings!(
-          configuration: { 'some_key' => 'some_value'},
-          rails_env: 'test',
-        )
-      end.to(
-        change { Identity::Hostdata.settings }.from(nil).to(kind_of(Identity::Hostdata::Settings))
-      )
-    end
-
-    it 'writes to ENV when write_to_env is true' do
-      expect do
-        Identity::Hostdata.setup_settings!(
-          configuration: { 'some_key' => 'some_value'},
-          rails_env: 'test',
-          write_to_env: true,
-        )
-      end.to(change { ENV['some_key'] }.to('some_value'))
-    end
-  end
-
   describe '.domain' do
     context 'when /etc/login.gov exists (in a datacenter environment)' do
       before { FileUtils.mkdir_p("#{@root}/etc/login.gov") }
