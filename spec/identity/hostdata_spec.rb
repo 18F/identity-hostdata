@@ -198,7 +198,7 @@ RSpec.describe Identity::Hostdata do
     end
   end
 
-  describe 'app_secrets_s3' do
+  describe '.app_secrets_s3' do
     before do
       stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
         to_return(body: {
@@ -239,7 +239,7 @@ RSpec.describe Identity::Hostdata do
     end
   end
 
-  describe 'secrets_s3' do
+  describe '.secrets_s3' do
     before do
       stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
         to_return(body: {

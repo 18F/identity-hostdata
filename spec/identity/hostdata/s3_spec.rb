@@ -4,11 +4,6 @@ RSpec.describe Identity::Hostdata::S3 do
   around(:each) do |ex|
     Identity::Hostdata.reset!
 
-    # set up before FakeFS
-    @logger = Logger.new('/dev/null')
-    @fake_s3 = Aws::S3::Client.new(stub_responses: true)
-
-
     Dir.mktmpdir do |root|
       @root = root
       Identity::Hostdata.root = root
@@ -19,8 +14,9 @@ RSpec.describe Identity::Hostdata::S3 do
   let(:bucket) { 'some-bucket-name' }
   let(:env) { 'staging' }
   let(:region) { 'us-west-2' }
-  let(:logger) { @logger }
-  let(:fake_s3) { @fake_s3 }
+  let(:logger) { Logger.new('/dev/null') }
+  let(:fake_s3) { Aws::S3::Client.new(stub_responses: true) }
+
   subject(:s3) do
     Identity::Hostdata::S3.new(
       bucket: bucket,
@@ -41,7 +37,7 @@ RSpec.describe Identity::Hostdata::S3 do
     let(:config_body) { 'test config data' }
 
     before do
-      @fake_s3.stub_responses(
+      fake_s3.stub_responses(
         :get_object,
         { body: config_body }
       )
@@ -76,7 +72,7 @@ RSpec.describe Identity::Hostdata::S3 do
     let(:config_body) { 'test config data' }
 
     it 'builds the key, downloads the file from s3 and returns the contents as a string' do
-      @fake_s3.stub_responses(:get_object, { body: config_body })
+      fake_s3.stub_responses(:get_object, { body: config_body })
 
       expect(fake_s3).to receive(:get_object).with(
         bucket: bucket,
@@ -88,14 +84,14 @@ RSpec.describe Identity::Hostdata::S3 do
     end
 
     it 'returns nil if the object does not exist in s3' do
-      @fake_s3.stub_responses(:get_object, 'NoSuchKey')
+      fake_s3.stub_responses(:get_object, 'NoSuchKey')
 
       result = s3.read_file('/no/such/key.yml')
       expect(result).to eq(nil)
     end
 
     it 'logs which files it is reading' do
-      @fake_s3.stub_responses(:get_object, { body: config_body })
+      fake_s3.stub_responses(:get_object, { body: config_body })
 
       expect(logger).to receive(:info).with(
         "Identity::Hostdata::S3: reading s3://some-bucket-name/staging/v1/idp/some_config.yml"
