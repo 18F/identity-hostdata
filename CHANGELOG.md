@@ -1,3 +1,8 @@
+# 2.0.0
+
+- Change the API that negotiates with S3 to differentiate between the secrets
+  bucket and the app-secrets bucket
+
 # 1.0.1
 
 - Add backwards-compatible `LoginGov` namespace back to smooth out
