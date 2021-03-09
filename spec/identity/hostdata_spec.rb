@@ -8,7 +8,9 @@ RSpec.describe Identity::Hostdata do
   around(:each) do |ex|
     Identity::Hostdata.reset!
 
-    FakeFS.with_fresh do
+    Dir.mktmpdir do |root|
+      @root = root
+      Identity::Hostdata.root = root
       ex.run
     end
   end
@@ -42,12 +44,12 @@ RSpec.describe Identity::Hostdata do
 
   describe '.domain' do
     context 'when /etc/login.gov exists (in a datacenter environment)' do
-      before { FileUtils.mkdir_p('/etc/login.gov') }
+      before { FileUtils.mkdir_p("#{@root}/etc/login.gov") }
 
       context 'when the info/domain file exists' do
         before do
-          FileUtils.mkdir_p('/etc/login.gov/info')
-          File.open('/etc/login.gov/info/domain', 'w') { |f| f.puts 'identitysandbox.gov' }
+          FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
+          File.open("#{@root}/etc/login.gov/info/domain", 'w') { |f| f.puts 'identitysandbox.gov' }
         end
 
         it 'reads the contents of the file' do
@@ -72,12 +74,12 @@ RSpec.describe Identity::Hostdata do
 
   describe '.env' do
     context 'when /etc/login.gov exists (in a datacenter environment)' do
-      before { FileUtils.mkdir_p('/etc/login.gov') }
+      before { FileUtils.mkdir_p("#{@root}/etc/login.gov") }
 
       context 'when the info/env file exists' do
         before do
-          FileUtils.mkdir_p('/etc/login.gov/info')
-          File.open('/etc/login.gov/info/env', 'w') { |f| f.puts 'staging' }
+          FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
+          File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'staging' }
         end
 
         it 'reads the contents of the file' do
@@ -102,12 +104,12 @@ RSpec.describe Identity::Hostdata do
 
   describe '.instance_role' do
     context 'when /etc/login.gov exists (in a datacenter environment)' do
-      before { FileUtils.mkdir_p('/etc/login.gov') }
+      before { FileUtils.mkdir_p("#{@root}/etc/login.gov") }
 
       context 'when the info/role file exists' do
         before do
-          FileUtils.mkdir_p('/etc/login.gov/info')
-          File.open('/etc/login.gov/info/role', 'w') { |f| f.puts 'migration' }
+          FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
+          File.open("#{@root}/etc/login.gov/info/role", 'w') { |f| f.puts 'migration' }
         end
 
         it 'reads the contents of the file' do
@@ -132,7 +134,7 @@ RSpec.describe Identity::Hostdata do
 
   describe '.in_datacenter?' do
     it 'is true when the /etc/login.gov directory exists' do
-      FileUtils.mkdir_p('/etc/login.gov')
+      FileUtils.mkdir_p("#{@root}/etc/login.gov")
 
       expect(Identity::Hostdata.in_datacenter?).to eq(true)
     end
@@ -144,7 +146,7 @@ RSpec.describe Identity::Hostdata do
 
   describe '.in_datacenter' do
     context 'when the /etc/login.gov directory exists' do
-      before { FileUtils.mkdir_p('/etc/login.gov') }
+      before { FileUtils.mkdir_p("#{@root}/etc/login.gov") }
 
       it 'blows up without a block' do
         expect { Identity::Hostdata.in_datacenter }.to raise_error(LocalJumpError)
@@ -191,15 +193,15 @@ RSpec.describe Identity::Hostdata do
     end
 
     context 'when /etc/login.gov exists (in a datacenter environment)' do
-      before { FileUtils.mkdir_p('/etc/login.gov') }
+      before { FileUtils.mkdir_p("#{@root}/etc/login.gov") }
 
       context 'when the info/env file exists' do
         before do
-          FileUtils.mkdir_p('/etc/login.gov/info')
-          File.open('/etc/login.gov/info/env', 'w') { |f| f.puts 'staging' }
-          FileUtils.mkdir_p('/etc/login.gov/repos/identity-devops/kitchen/environments/')
+          FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
+          File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'staging' }
+          FileUtils.mkdir_p("#{@root}/etc/login.gov/repos/identity-devops/kitchen/environments/")
           File.open(
-            '/etc/login.gov/repos/identity-devops/kitchen/environments/staging.json', 'w'
+            "#{@root}/etc/login.gov/repos/identity-devops/kitchen/environments/staging.json", 'w'
           ) { |f| f.puts config_data.to_json }
         end
 
@@ -231,8 +233,8 @@ RSpec.describe Identity::Hostdata do
           'region' => 'us-east-1',
         }.to_json)
 
-      FileUtils.mkdir_p('/etc/login.gov/info')
-      File.open('/etc/login.gov/info/env', 'w') { |f| f.puts 'int' }
+      FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
+      File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'int' }
     end
 
     subject(:s3) { Identity::Hostdata.app_secrets_s3 }
@@ -272,8 +274,8 @@ RSpec.describe Identity::Hostdata do
           'region' => 'us-east-1',
         }.to_json)
 
-      FileUtils.mkdir_p('/etc/login.gov/info')
-      File.open('/etc/login.gov/info/env', 'w') { |f| f.puts 'int' }
+      FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
+      File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'int' }
     end
 
     subject(:s3) { Identity::Hostdata.secrets_s3 }
