@@ -35,7 +35,7 @@ RSpec.describe Identity::Hostdata::S3 do
     let(:local_config_file) { "#{@root}/srv/idp/current/config/config.yml" }
 
     subject(:download_file) do
-      s3.download_file('/%{env}/v1/idp/some_config.yml', local_config_file)
+      s3.download_file(s3_path: '/%{env}/v1/idp/some_config.yml', local_path: local_config_file)
     end
 
     let(:config_body) { 'test config data' }
@@ -50,7 +50,8 @@ RSpec.describe Identity::Hostdata::S3 do
     it 'builds the key, downloads file from s3 and writes them to the local path' do
       expect(fake_s3).to receive(:get_object).with(
         bucket: bucket,
-        key: "#{env}/v1/idp/some_config.yml"
+        key: "#{env}/v1/idp/some_config.yml",
+        response_target: local_config_file,
       ).and_call_original
 
       download_file
@@ -79,7 +80,8 @@ RSpec.describe Identity::Hostdata::S3 do
 
       expect(fake_s3).to receive(:get_object).with(
         bucket: bucket,
-        key: "#{env}/v1/idp/some_config.yml"
+        key: "#{env}/v1/idp/some_config.yml",
+        response_target: nil,
       ).and_call_original
 
       expect(read_file).to eq(config_body)

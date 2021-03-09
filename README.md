@@ -29,7 +29,8 @@ root = File.expand_path('../../', __FILE__)
 Identity::Hostdata.in_datacenter do |hostdata|
   # Download the config and write to disk
   hostdata.app_secrets_s3.download_file(
-    '/%{env}/v1/idp/database.yml', File.join(root, 'config/database_s3.yml')
+    s3_path: '/%{env}/v1/idp/database.yml',
+    local_path: File.join(root, 'config/database_s3.yml')
   )
   # Read the config into the `cert` var
   cert = hostdata.secrets_s3.read_file('/%{env}/oidc.cert')

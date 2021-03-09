@@ -16,13 +16,13 @@ module Identity
         @s3_client = s3_client
       end
 
-      def download_file(s3_path, local_path)
+      def download_file(s3_path:, local_path:)
         key = build_key(s3_path)
 
         logger && logger.info("#{self.class}: downloading s3://#{bucket}/#{key} to #{local_path}")
 
-        s3_response = get_s3_object(key)
-        stream_s3_object_to_file(s3_response, local_path)
+        FileUtils.mkdir_p(File.dirname(local_path))
+        s3_response = make_s3_get_object_request(key: key, response_target: local_path)
       end
 
       def read_file(s3_path)
@@ -30,32 +30,23 @@ module Identity
 
         logger && logger.info("#{self.class}: reading s3://#{bucket}/#{key}")
 
-        get_s3_object(key).body.read
+        make_s3_get_object_request(key: key).body.read
       rescue Aws::S3::Errors::NoSuchKey
         nil
       end
 
       private
 
-      def build_key(s3_path)
+      def build_key(s3_path, response_target = nil)
         format(s3_path, env: env).sub(%r|\A/|, '')
       end
 
-      def get_s3_object(key)
+      def make_s3_get_object_request(key:, response_target: nil)
         s3_client.get_object(
           bucket: bucket,
           key: key,
+          response_target: response_target,
         )
-      end
-
-      def stream_s3_object_to_file(s3_object_response, file_path)
-        FileUtils.mkdir_p(File.dirname(file_path))
-
-        File.open(file_path, 'wb') do |file|
-          while bytes = s3_object_response.body.read(512)
-            file.write(bytes)
-          end
-        end
       end
 
       def s3_client
