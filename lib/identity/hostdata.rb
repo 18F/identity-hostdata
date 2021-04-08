@@ -70,12 +70,17 @@ module Identity
 
     # @return [String]
     def self.aws_region
-      @aws_region ||= ENV['LOGIN_AWS_REGION'] ||  Identity::Hostdata::EC2.load.region
+      @aws_region ||= ENV['LOGIN_AWS_REGION'] || ec2.region
     end
 
     # @return [String]
     def self.aws_account_id
-      @aws_account_id ||= ENV['LOGIN_AWS_ACCOUNT_ID'] || Identity::Hostdata::EC2.load.account_id
+      @aws_account_id ||= ENV['LOGIN_AWS_ACCOUNT_ID'] || ec2.account_id
+    end
+
+    # @return [EC2]
+    def self.ec2
+      @ec2 = Identity::Hostdata::EC2.load
     end
 
     # @return [S3] An S3 object configured to use the app-secrets bucket
