@@ -12,14 +12,16 @@ to `/etc/login.gov` by chef.
 
 Outside of a chef configured environment, this gem will use env vars for configuration
 
-### Configuration via `/etc/login.gov`
+The `/etc/login.gov` directory or env vars can be accessed through `Identity::Hostdata` class methods.
 
-The `/etc/login.gov` directory will exist on deployed instanes of login.gov apps. It contains individual files with useful data, and can be accessed through `Identity::Hostdata` class methods
-
-| File | API | Example |
+| File | Env var | API | Example |
 | ---- | --- | ------- |
-| `/etc/login.gov/info/env` | `Identity::Hostdata.env` | `"int"` |
-| `/etc/login.gov/info/domain` | `Identity::Hostdata.domain` | `"login.gov"` |
+| `/etc/login.gov/info/env` | `LOGIN_ENV` | `Identity::Hostdata.env` | `"int"` |
+| `/etc/login.gov/info/domain` | `LOGIN_DOMAIN` | `Identity::Hostdata.domain` | `"login.gov"` |
+| `/etc/login.gov/info/role` | `LOGIN_HOST_ROLE` | `Identity::Hostdata.instance_role` | `"login.gov"` |
+| `/etc/login.gov/repos/identity-devops/kitchen/environments/$ENV.json` | LOGIN_HOST_CONFIG | `Identity::Hostdata.config` | `"login.gov"` |
+
+Additionally, if env vars are being used you will want to set `LOGIN_DATACENTER` to true in production. This will make `Identity::Hostdata.in_datacenter?` return true.
 
 ### Configuration via env vars
 
