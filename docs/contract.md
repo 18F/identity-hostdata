@@ -23,16 +23,6 @@ The `/etc/login.gov` directory or env vars can be accessed through `Identity::Ho
 
 Additionally, if env vars are being used you will want to set `LOGIN_DATACENTER` to true in production. This will make `Identity::Hostdata.in_datacenter?` return true.
 
-### Configuration via env vars
-
-To configure the app with env vars, add the following environment variables:
-
-- `LOGIN_DATACENTER`: The value `true` to indicate the IDP is in production in a deployed environment
-- `LOGIN_ENV`: The environment the app is running in (e.g. `int`, `staging`, or `prod`)
-- `LOGIN_DOMAIN`: The domain of the current app (e.g. `idp.int.identitysandbox.gov`)
-- `LOGIN_HOST_ROLE`: The role of the current host, (e.g. `idp`, `workder`, `pivcac`)
-- `LOGIN_HOST_CONFIG`: Host specific configurations (A template is available here: [https://github.com/18F/identity-devops/blob/main/kitchen/environments/environment.json.template](https://github.com/18F/identity-devops/blob/main/kitchen/environments/environment.json.template))
-
 ## AWS host information
 
 Apps may need to know about the AWS environment they are configured to run in or alongside.
