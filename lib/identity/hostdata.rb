@@ -14,47 +14,44 @@ module Identity
 
     # @return [String]
     def self.domain
-      @domain ||= begin
-        ENV['LOGIN_DOMAIN'] || File.read(File.join(root.to_s, DOMAIN_PATH)).chomp
-      rescue Errno::ENOENT => err
-        raise MissingConfigError, err.message if in_datacenter?
-      end
+      return @domain if defined?(@domain)
+      @domain = ENV['LOGIN_DOMAIN'] || File.read(File.join(root.to_s, DOMAIN_PATH)).chomp
+    rescue Errno::ENOENT => err
+      raise MissingConfigError, err.message if in_datacenter?
     end
 
     # @return [String]
     def self.env
-      @env ||= begin
-        ENV['LOGIN_ENV'] || File.read(File.join(root.to_s, ENV_PATH)).chomp
-      rescue Errno::ENOENT => err
-        raise MissingConfigError, err.message if in_datacenter?
-      end
+      return @env if defined?(@env)
+      @env = ENV['LOGIN_ENV'] || File.read(File.join(root.to_s, ENV_PATH)).chomp
+    rescue Errno::ENOENT => err
+      raise MissingConfigError, err.message if in_datacenter?
     end
 
     # @return [Hash] parses the environment's config JSON
     def self.config
-      @config ||= begin
-        config_path = File.join(
-          root.to_s,
-          CONFIG_DIR,
-          'repos/identity-devops/kitchen/environments',
-          "#{env}.json"
-        )
-        config_contents = ENV['LOGIN_HOST_CONFIG'] || File.read(config_path)
+      return @config if defined?(@config)
 
-        JSON.parse(config_contents, symbolize_names: true)
-      rescue Errno::ENOENT => err
-        raise MissingConfigError, err.message if in_datacenter?
-        {}
-      end
+      config_path = File.join(
+        root.to_s,
+        CONFIG_DIR,
+        'repos/identity-devops/kitchen/environments',
+        "#{env}.json"
+      )
+      config_contents = ENV['LOGIN_HOST_CONFIG'] || File.read(config_path)
+
+      @config = JSON.parse(config_contents, symbolize_names: true)
+    rescue Errno::ENOENT => err
+      raise MissingConfigError, err.message if in_datacenter?
+      {}
     end
 
     # @return [String]
     def self.instance_role
-      @instance_role ||= begin
-        ENV['LOGIN_HOST_ROLE'] || File.read(File.join(root.to_s, INSTANCE_ROLE_PATH)).chomp
-      rescue Errno::ENOENT => err
-        raise MissingConfigError, err.message if in_datacenter?
-      end
+      return @instance_role if defined?(@instance_role)
+      @instance_role = ENV['LOGIN_HOST_ROLE'] || File.read(File.join(root.to_s, INSTANCE_ROLE_PATH)).chomp
+    rescue Errno::ENOENT => err
+      raise MissingConfigError, err.message if in_datacenter?
     end
 
     # @return [Boolean]
