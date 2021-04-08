@@ -38,6 +38,19 @@ RSpec.describe Identity::Hostdata do
       end
     end
 
+    context 'when the LOGIN_DOMAIN env var is set' do
+      before do
+        stub_const(
+          'ENV',
+          { 'LOGIN_DOMAIN' => 'identityenvbox.gov', 'LOGIN_DATACENTER' => 'true' },
+        )
+      end
+
+      it 'reads the value of the env var' do
+        expect(Identity::Hostdata.domain).to eq('identityenvbox.gov')
+      end
+    end
+
     context 'when /etc/login.gov does not exist (development environment)' do
       it 'is nil' do
         expect(Identity::Hostdata.domain).to eq(nil)
@@ -68,6 +81,19 @@ RSpec.describe Identity::Hostdata do
       end
     end
 
+    context 'when the LOGIN_ENV env var is set' do
+      before do
+        stub_const(
+          'ENV',
+          { 'LOGIN_ENV' => 'dev', 'LOGIN_DATACENTER' => 'true' },
+        )
+      end
+
+      it 'reads the value of the env var' do
+        expect(Identity::Hostdata.env).to eq('dev')
+      end
+    end
+
     context 'when /etc/login.gov does not exist (development environment)' do
       it 'is nil' do
         expect(Identity::Hostdata.env).to eq(nil)
@@ -90,6 +116,19 @@ RSpec.describe Identity::Hostdata do
         end
       end
 
+      context 'when the LOGIN_HOST_ROLE env var is set' do
+        before do
+          stub_const(
+            'ENV',
+            { 'LOGIN_HOST_ROLE' => 'worker', 'LOGIN_DATACENTER' => 'true' },
+          )
+        end
+
+        it 'reads the value of the env var' do
+          expect(Identity::Hostdata.instance_role).to eq('worker')
+        end
+      end
+
       context 'when the info/role file does not exist' do
         it 'blows up' do
           expect { Identity::Hostdata.instance_role }.
@@ -105,11 +144,59 @@ RSpec.describe Identity::Hostdata do
     end
   end
 
+  describe '#aws_region' do
+    context 'when the LOGIN_AWS_REGION env var is set' do
+      it 'returns the env var value' do
+        stub_const('ENV', 'LOGIN_AWS_REGION' => 'us-west-2')
+
+        expect(Identity::Hostdata.aws_region).to eq('us-west-2')
+      end
+    end
+
+    context 'when a region env var is not set' do
+      it 'uses the EC2 instance metadata' do
+        stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
+          to_return(body: {
+            'accountId' => '12345',
+            'region' => 'us-east-1',
+          }.to_json)
+
+        expect(Identity::Hostdata.aws_region).to eq('us-east-1')
+      end
+    end
+  end
+
+  describe '#aws_account_id' do
+    context 'when the LOGIN_AWS_ACCOUNT_ID env var is set' do
+      it 'returns the env var value' do
+        stub_const('ENV', 'LOGIN_AWS_ACCOUNT_ID' => '67890')
+
+        expect(Identity::Hostdata.aws_account_id).to eq('67890')
+      end
+    end
+
+    context 'when an account id env var is not set' do
+      it 'uses the EC2 instance metadata' do
+        stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
+          to_return(body: {
+            'accountId' => '12345',
+            'region' => 'us-east-1',
+          }.to_json)
+
+        expect(Identity::Hostdata.aws_account_id).to eq('12345')
+      end
+    end
+  end
+
   describe '.in_datacenter?' do
     it 'is true when the /etc/login.gov directory exists' do
       FileUtils.mkdir_p("#{@root}/etc/login.gov")
 
       expect(Identity::Hostdata.in_datacenter?).to eq(true)
+    end
+
+    it 'is true when the HOSTDATA_DATACENTER var is set to "true"' do
+      stub_const('ENV', 'LOGIN_DATACENTER' => 'true')
     end
 
     it 'is false when the /etc/login.gov does not exist' do
@@ -188,6 +275,23 @@ RSpec.describe Identity::Hostdata do
           expect { Identity::Hostdata.config }.
             to raise_error(Identity::Hostdata::MissingConfigError)
         end
+      end
+    end
+
+    context 'when the LOGIN_HOST_CONFIG env var is set' do
+      before do
+        stub_const(
+          'ENV',
+          {
+            'LOGIN_HOST_CONFIG' => config_data.to_json,
+            'LOGIN_DATACENTER' => 'true',
+            'LOGIN_ENV' => 'staging',
+          },
+        )
+      end
+
+      it 'parses and returns the config in the env' do
+        expect(Identity::Hostdata.config).to eq(config_data)
       end
     end
 

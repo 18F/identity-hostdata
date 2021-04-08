@@ -15,7 +15,7 @@ module Identity
     # @return [String]
     def self.domain
       @domain ||= begin
-        File.read(File.join(root.to_s, DOMAIN_PATH)).chomp
+        ENV['LOGIN_DOMAIN'] || File.read(File.join(root.to_s, DOMAIN_PATH)).chomp
       rescue Errno::ENOENT => err
         raise MissingConfigError, err.message if in_datacenter?
       end
@@ -24,7 +24,7 @@ module Identity
     # @return [String]
     def self.env
       @env ||= begin
-        File.read(File.join(root.to_s, ENV_PATH)).chomp
+        ENV['LOGIN_ENV'] || File.read(File.join(root.to_s, ENV_PATH)).chomp
       rescue Errno::ENOENT => err
         raise MissingConfigError, err.message if in_datacenter?
       end
@@ -39,8 +39,9 @@ module Identity
           'repos/identity-devops/kitchen/environments',
           "#{env}.json"
         )
+        config_contents = ENV['LOGIN_HOST_CONFIG'] || File.read(config_path)
 
-        JSON.parse(File.read(config_path), symbolize_names: true)
+        JSON.parse(config_contents, symbolize_names: true)
       rescue Errno::ENOENT => err
         raise MissingConfigError, err.message if in_datacenter?
         {}
@@ -50,7 +51,7 @@ module Identity
     # @return [String]
     def self.instance_role
       @instance_role ||= begin
-        File.read(File.join(root.to_s, INSTANCE_ROLE_PATH)).chomp
+        ENV['LOGIN_HOST_ROLE'] || File.read(File.join(root.to_s, INSTANCE_ROLE_PATH)).chomp
       rescue Errno::ENOENT => err
         raise MissingConfigError, err.message if in_datacenter?
       end
@@ -59,7 +60,8 @@ module Identity
     # @return [Boolean]
     def self.in_datacenter?
       return @in_datacenter if defined?(@in_datacenter)
-      @in_datacenter = File.directory?(File.join(root.to_s, CONFIG_DIR))
+      @in_datacenter = ENV['LOGIN_DATACENTER'] == 'true' ||
+                         File.directory?(File.join(root.to_s, CONFIG_DIR))
     end
 
     # @yield Executes a block if in_datacenter?
@@ -69,14 +71,23 @@ module Identity
       yield self if in_datacenter?
     end
 
+    # @return [String]
+    def self.aws_region
+      @aws_region ||= ENV['LOGIN_AWS_REGION'] ||  Identity::Hostdata::EC2.load.region
+    end
+
+    # @return [String]
+    def self.aws_account_id
+      @aws_account_id ||= ENV['LOGIN_AWS_ACCOUNT_ID'] || Identity::Hostdata::EC2.load.account_id
+    end
+
     # @return [S3] An S3 object configured to use the app-secrets bucket
     def self.app_secrets_s3(logger: default_logger, s3_client: nil)
-      ec2 = Identity::Hostdata::EC2.load
-      bucket = "login-gov.app-secrets.#{ec2.account_id}-#{ec2.region}"
+      bucket = "login-gov.app-secrets.#{aws_account_id}-#{aws_region}"
 
       Identity::Hostdata::S3.new(
         env: env,
-        region: ec2.region,
+        region: aws_region,
         logger: logger,
         s3_client: s3_client,
         bucket: bucket
@@ -85,12 +96,11 @@ module Identity
 
     # @return [S3] An S3 object configured to use the secrets bucket
     def self.secrets_s3(logger: default_logger, s3_client: nil)
-      ec2 = Identity::Hostdata::EC2.load
-      bucket = "login-gov.secrets.#{ec2.account_id}-#{ec2.region}"
+      bucket = "login-gov.secrets.#{aws_account_id}-#{aws_region}"
 
       Identity::Hostdata::S3.new(
         env: env,
-        region: ec2.region,
+        region: aws_region,
         logger: logger,
         s3_client: s3_client,
         bucket: bucket
