@@ -80,7 +80,7 @@ module Identity
 
     # @return [EC2]
     def self.ec2
-      @ec2 = Identity::Hostdata::EC2.load
+      @ec2 ||= Identity::Hostdata::EC2.load
     end
 
     # @return [S3] An S3 object configured to use the app-secrets bucket
