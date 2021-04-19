@@ -1,3 +1,7 @@
+# 3.0.0
+
+- Add the ability to override hostdata values with env vars
+
 # 2.0.0
 
 - Change the API that negotiates with S3 to differentiate between the secrets

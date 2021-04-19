@@ -1,33 +1,58 @@
 # login.gov infrastructure contract
 
-## `/etc/login.gov`
+This gem is built to support an app in 2 deployment schemes:
 
-The `/etc/login.gov` directory will exist on deployed instanes of login.gov apps. It contains individual files with useful data, and can be accessed through `Identity::Hostdata` class methods
+1. In a chef provisioned environment using EC2 metadata and files on the disk
+2. In a non-chef provisioned environment that is configured using environment variables
 
-| File | API | Example |
-| ---- | --- | ------- |
-| `/etc/login.gov/info/env` | `Identity::Hostdata.env` | `"int"` |
-| `/etc/login.gov/info/domain` | `Identity::Hostdata.domain` | `"login.gov"` |
+## Host configurations
 
-## EC2 instance metadata
+In a chef configured environment, this gem can read configurations from files that are added
+to `/etc/login.gov` by chef.
+
+Outside of a chef configured environment, this gem will use env vars for configuration
+
+The `/etc/login.gov` directory or env vars can be accessed through `Identity::Hostdata` class methods.
+
+| File | Env var | API | Example |
+| ---- | --- | --- | ------- |
+| `/etc/login.gov/info/env` | `LOGIN_ENV` | `Identity::Hostdata.env` | `"int"` |
+| `/etc/login.gov/info/domain` | `LOGIN_DOMAIN` | `Identity::Hostdata.domain` | `"login.gov"` |
+| `/etc/login.gov/info/role` | `LOGIN_HOST_ROLE` | `Identity::Hostdata.instance_role` | `"worker"` |
+| `/etc/login.gov/repos/identity-devops/kitchen/environments/$ENV.json` | `LOGIN_HOST_CONFIG` | `Identity::Hostdata.config` | [Example here](https://github.com/18F/identity-devops/blob/main/kitchen/environments/environment.json.template) |
+
+Additionally, if env vars are being used you will want to set `LOGIN_DATACENTER` to true in production. This will make `Identity::Hostdata.in_datacenter?` return true.
+
+## AWS host information
+
+Apps may need to know about the AWS environment they are configured to run in or alongside.
+If the app is running on an EC2 instance in AWS, it can read the EC2 metadata to determine the region or account ID.
+If the app is not running on an EC2 instance in AWs, it can read configurations from ENV vars
+
+### EC2 instance metadata
 
 We use [instance metadata][instance-metadata] (an HTTP request from an EC2 box) to populate basic information about our instances in EC2.
 
 - region
 - account ID
 
-The [Identity::Hostdata::EC2](../lib/identity/hostdata/ec2.rb) class helps load and read this data:
+The [Identity::Hostdata](../lib/identity/hostdata/hostdata.rb) module helps load and read this data:
 
 ```ruby
-ec2_data = Identity::Hostdata::EC2.load
-# => #<Identity::Hostdata::EC2:0x00007fc49dd30f40 ...>
-ec2_data.region
+Identity::Hostdata.aws_region
 # => "us-west-1"
-ec2_data.account_id
+Identity::Hostdata.aws_account_id
 # => "12345"
 ```
 
 [instance-metadata]: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html
+
+### AWS environment vars
+
+If the app is not running on an EC2 instance, then the configs for the AWS environment can be set with the following env vars:
+
+- `LOGIN_AWS_REGION`: The AWS region (named to avoid conflicting with `AWS_REGION`)
+- `LOGIN_AWS_ACCOUNT_ID`: The AWS account ID
 
 ## Files stored in S3
 
