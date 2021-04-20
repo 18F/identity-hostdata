@@ -92,10 +92,6 @@ module Identity
         end
       end
 
-      def symbolize_keys(hash)
-
-      end
-
       def deep_merge(hash_a, hash_b)
         hash_a.merge(hash_b) do |key, a_val, b_val|
           if a_val.is_a?(Hash) && b_val.is_a?(Hash)
