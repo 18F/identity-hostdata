@@ -1,3 +1,4 @@
+require "identity/hostdata/config_reader"
 require "identity/hostdata/ec2"
 require "identity/hostdata/s3"
 require "identity/hostdata/version"
