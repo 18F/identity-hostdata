@@ -1,3 +1,7 @@
+# 3.1.0
+
+- Add a ConfigReader class which can be used to parse configs from application.yml
+
 # 3.0.0
 
 - Add the ability to override hostdata values with env vars
