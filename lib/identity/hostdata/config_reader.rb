@@ -1,10 +1,19 @@
+require 'logger'
+require 'fileutils'
+require 'yaml'
+
+require "active_support"
+require "active_support/core_ext/hash/deep_merge"
+require "active_support/core_ext/hash/except"
+
 module Identity
   module Hostdata
     class ConfigReader
       attr_reader :app_root, :logger
 
+      # @param [Pathname] app_root
       def initialize(
-        app_root: Rails.root,
+        app_root:,
         s3_client: nil,
         logger: Logger.new(STDOUT)
       )
@@ -20,11 +29,7 @@ module Identity
           FileUtils.chmod(0o640, write_copy_to)
         end
 
-        base_configs = base_configuration.dup
-        base_configs.delete('development')
-        base_configs.delete('production')
-        base_configs.delete('test')
-        base_configs.merge(
+        base_configuration.except('development', 'production', 'test').merge(
           base_configuration[rails_env],
         ).transform_keys(&:to_sym)
       end
@@ -32,8 +37,9 @@ module Identity
       private
 
       def base_configuration
-        @base_configuration ||= deep_merge(
-          deep_merge(default_configuration, app_override_configuration),
+        @base_configuration ||= default_configuration.deep_merge(
+          app_override_configuration,
+        ).deep_merge(
           role_override_configuration,
         )
       end
@@ -89,16 +95,6 @@ module Identity
           'web.yml'
         when 'worker'
           'worker.yml'
-        end
-      end
-
-      def deep_merge(hash_a, hash_b)
-        hash_a.merge(hash_b) do |key, a_val, b_val|
-          if a_val.is_a?(Hash) && b_val.is_a?(Hash)
-            deep_merge(a_val, b_val)
-          else
-            b_val || a_val
-          end
         end
       end
     end
