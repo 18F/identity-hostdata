@@ -49,7 +49,7 @@ module Identity
                       elsif File.exists?(local_config_filepath)
                         File.read(local_config_filepath)
                       end
-        YAML.safe_load(raw_configs || '{}')
+        YAML.safe_load(raw_configs || '{}') || {}
       end
 
       def role_override_configuration
@@ -62,7 +62,7 @@ module Identity
                         File.read(local_config_filepath)
                       end
 
-        YAML.safe_load(raw_configs || '{}')
+        YAML.safe_load(raw_configs || '{}') || {}
       end
 
       def app_secrets_s3
