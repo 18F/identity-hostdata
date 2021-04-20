@@ -26,7 +26,7 @@ module Identity
         base_configs.delete('test')
         base_configs.merge(
           base_configuration[rails_env],
-        )
+        ).transform_keys(&:to_sym)
       end
 
       private
@@ -90,6 +90,10 @@ module Identity
         when 'worker'
           'worker.yml'
         end
+      end
+
+      def symbolize_keys(hash)
+
       end
 
       def deep_merge(hash_a, hash_b)

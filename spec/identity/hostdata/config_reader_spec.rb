@@ -78,11 +78,11 @@ RSpec.describe Identity::Hostdata::ConfigReader do
         hash_including(key: 'int/idp/v1/application.yml'),
       )
       expect(configuration).to eq(
-        'base_config' => 'test',
-        'env_config' => 'test',
-        'overriden_env_config' => 'test',
-        'overriden_base_config' => 'test',
-        'overriden_role_config' => 'only override me on workers',
+        base_config: 'test',
+        env_config: 'test',
+        overriden_env_config: 'test',
+        overriden_base_config: 'test',
+        overriden_role_config: 'only override me on workers',
       )
     end
 
@@ -98,11 +98,11 @@ RSpec.describe Identity::Hostdata::ConfigReader do
         hash_including(key: 'int/idp/v1/worker.yml'),
       )
       expect(configuration).to eq(
-        'base_config' => 'test',
-        'env_config' => 'test',
-        'overriden_env_config' => 'test',
-        'overriden_base_config' => 'test',
-        'overriden_role_config' => 'test',
+        base_config: 'test',
+        env_config: 'test',
+        overriden_env_config: 'test',
+        overriden_base_config: 'test',
+        overriden_role_config: 'test',
       )
     end
 
@@ -122,8 +122,8 @@ RSpec.describe Identity::Hostdata::ConfigReader do
 
         configuration = reader.read_configuration('development')
 
-        expect(configuration['config1']).to eq('hello')
-        expect(configuration['config2']).to eq('world')
+        expect(configuration[:config1]).to eq('hello')
+        expect(configuration[:config2]).to eq('world')
       end
     end
 
@@ -143,8 +143,8 @@ RSpec.describe Identity::Hostdata::ConfigReader do
 
         configuration = reader.read_configuration('development')
 
-        expect(configuration['config1']).to eq('hello')
-        expect(configuration['config2']).to eq('world')
+        expect(configuration[:config1]).to eq('hello')
+        expect(configuration[:config2]).to eq('world')
       end
     end
 
@@ -160,7 +160,7 @@ RSpec.describe Identity::Hostdata::ConfigReader do
 
         configuration = reader.read_configuration('development')
 
-        expect(configuration['config1']).to eq('hello')
+        expect(configuration[:config1]).to eq('hello')
       end
     end
   end
@@ -170,11 +170,11 @@ RSpec.describe Identity::Hostdata::ConfigReader do
       configuration = reader.read_configuration('development')
 
       expect(configuration).to eq(
-        'base_config' => 'test',
-        'env_config' => 'test',
-        'overriden_env_config' => 'test',
-        'overriden_base_config' => 'test',
-        'overriden_role_config' => 'only override me on workers',
+        base_config: 'test',
+        env_config: 'test',
+        overriden_env_config: 'test',
+        overriden_base_config: 'test',
+        overriden_role_config: 'only override me on workers',
       )
     end
   end
