@@ -86,6 +86,7 @@ module Identity
 
       def app_configuration_path_component
         return 'idp' if Identity::Hostdata.instance_role == 'worker'
+        return 'dashboard' if Identity::Hostdata.instance_role == 'app'
         Identity::Hostdata.instance_role
       end
 
