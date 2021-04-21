@@ -163,6 +163,22 @@ RSpec.describe Identity::Hostdata::ConfigReader do
         expect(configuration[:config1]).to eq('hello')
       end
     end
+
+    context 'on dashboards' do
+      it 'resolves the s3 paths correctly' do
+        allow(Identity::Hostdata).to receive(:instance_role).and_return('app')
+
+        s3_contents['int/dashboard/v1/application.yml'] = 'config1: hello'
+
+        expect(s3_client).to receive(:get_object).with(
+          hash_including(key: 'int/dashboard/v1/application.yml')
+        ).and_call_original
+
+        configuration = reader.read_configuration('development')
+
+        expect(configuration[:config1]).to eq('hello')
+      end
+    end
   end
 
   context 'during local dev' do
