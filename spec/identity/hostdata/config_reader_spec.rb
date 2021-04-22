@@ -51,11 +51,15 @@ RSpec.describe Identity::Hostdata::ConfigReader do
       allow(Identity::Hostdata).to receive(:instance_role).and_return('idp')
       allow(Identity::Hostdata).to receive(:env).and_return('int')
 
+      stub_request(:put, "http://169.254.169.254/latest/api/token").
+          with(headers: {'X-Aws-Ec2-Metadata-Token-Ttl-Seconds'=>'60'}).
+          to_return(body: "bhasdkjhas82")
       stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-        to_return(body: {
-          'region' => 'us-west-1',
-          'accountId' => '12345',
-        }.to_json)
+          with(headers: { 'X-aws-ec2-metadata-token' => 'bhasdkjhas82' }).
+          to_return(body: {
+            'region' => 'us-west-1',
+            'accountId' => '12345',
+          }.to_json)
 
       s3_client.stub_responses(
         :get_object, proc do |context|
