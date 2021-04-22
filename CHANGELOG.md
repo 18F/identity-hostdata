@@ -1,3 +1,7 @@
+# 3.1.2
+
+- Fix a bug where the migration application.yml path was not resolved correctly
+
 # 3.1.1
 
 - Fix a bug where the dashboard application.yml path was not resolved correctly
