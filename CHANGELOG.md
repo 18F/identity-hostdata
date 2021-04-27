@@ -1,3 +1,7 @@
+# 3.2.0
+
+- Update to use V2 of the EC2 instance metadata service
+
 # 3.1.2
 
 - Fix a bug where the migration application.yml path was not resolved correctly

@@ -8,7 +8,7 @@ module Identity
       #
       # @return [EC2]
       def self.load
-        response = http.get('/2016-09-02/dynamic/instance-identity/document')
+        response = http.get('/2016-09-02/dynamic/instance-identity/document', 'X-aws-ec2-metadata-token' => v2_token)
         new(JSON.parse(response.body))
       end
 
@@ -20,6 +20,11 @@ module Identity
         http.open_timeout = 1
         http
       end
+
+      # get token
+      def self.v2_token
+        http.put('/latest/api/token', nil, 'X-aws-ec2-metadata-token-ttl-seconds' => '60').body.chomp
+      end 
 
       attr_reader :document
 
