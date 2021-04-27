@@ -146,8 +146,8 @@ RSpec.describe Identity::Hostdata do
 
     context 'when a region env var is not set' do
       it 'uses the EC2 instance metadata' do
-        stub_request(:put, "http://169.254.169.254/latest/api/token").
-          with(headers: {'X-Aws-Ec2-Metadata-Token-Ttl-Seconds'=>'60'}).
+        stub_request(:put, 'http://169.254.169.254/latest/api/token').
+          with(headers: {'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60'}).
           to_return(body: "bhasdkjhas82")
         stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
           with(headers: { 'X-aws-ec2-metadata-token' => 'bhasdkjhas82' }).
@@ -172,8 +172,8 @@ RSpec.describe Identity::Hostdata do
 
     context 'when an account id env var is not set' do
       it 'uses the EC2 instance metadata' do
-        stub_request(:put, "http://169.254.169.254/latest/api/token").
-          with(headers: {'X-Aws-Ec2-Metadata-Token-Ttl-Seconds'=>'60'}).
+        stub_request(:put, 'http://169.254.169.254/latest/api/token').
+          with(headers: {'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60'}).
           to_return(body: "bhasdkjhas82")
         stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
           with(headers: { 'X-aws-ec2-metadata-token' => 'bhasdkjhas82' }).
