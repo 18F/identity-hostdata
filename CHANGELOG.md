@@ -1,5 +1,6 @@
-# 3.1.3
-- Update to use V2 of the ec2 instance metadata service
+# 3.2.0
+
+- Update to use V2 of the EC2 instance metadata service
 
 # 3.1.2
 
