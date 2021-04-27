@@ -8,7 +8,7 @@ module Identity
       #
       # @return [EC2]
       def self.load
-        response = http.get('/2016-09-02/dynamic/instance-identity/document', { 'X-aws-ec2-metadata-token' => v2_token })
+        response = http.get('/2016-09-02/dynamic/instance-identity/document', 'X-aws-ec2-metadata-token' => v2_token)
         new(JSON.parse(response.body))
       end
 
