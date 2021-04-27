@@ -23,8 +23,7 @@ module Identity
 
       # get token
       def self.v2_token
-        token = Net::HTTP.new('169.254.169.254', 80)
-        http.put('/latest/api/token', nil, { 'X-aws-ec2-metadata-token-ttl-seconds': "60" }).body
+        http.put('/latest/api/token', nil, 'X-aws-ec2-metadata-token-ttl-seconds' => '60').body.chomp
       end 
 
       attr_reader :document
