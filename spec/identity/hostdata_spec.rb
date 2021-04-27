@@ -21,6 +21,8 @@ RSpec.describe Identity::Hostdata do
     stub_const('ENV', env)
   end
 
+  let(:ec2_api_token) { SecureRandom.hex }
+
   describe '.domain' do
     context 'when /etc/login.gov exists (in a datacenter environment)' do
       before { FileUtils.mkdir_p("#{@root}/etc/login.gov") }
@@ -148,9 +150,9 @@ RSpec.describe Identity::Hostdata do
       it 'uses the EC2 instance metadata' do
         stub_request(:put, 'http://169.254.169.254/latest/api/token').
           with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-          to_return(body: "bhasdkjhas82")
+          to_return(body: ec2_api_token)
         stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-          with(headers: { 'X-aws-ec2-metadata-token' => 'bhasdkjhas82' }).
+          with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
           to_return(body: {
             'accountId' => '12345',
             'region' => 'us-east-1',
@@ -174,9 +176,9 @@ RSpec.describe Identity::Hostdata do
       it 'uses the EC2 instance metadata' do
         stub_request(:put, 'http://169.254.169.254/latest/api/token').
           with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-          to_return(body: "bhasdkjhas82")
+          to_return(body: ec2_api_token)
         stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-          with(headers: { 'X-aws-ec2-metadata-token' => 'bhasdkjhas82' }).
+          with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
           to_return(body: {
             'accountId' => '12345',
             'region' => 'us-east-1',
@@ -305,9 +307,9 @@ RSpec.describe Identity::Hostdata do
     before do
       stub_request(:put, 'http://169.254.169.254/latest/api/token').
           with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-          to_return(body: "bhasdkjhas82")
+          to_return(body: ec2_api_token)
       stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-        with(headers: { 'X-aws-ec2-metadata-token' => 'bhasdkjhas82' }).
+        with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
         to_return(body: {
           'accountId' => '12345',
           'region' => 'us-east-1',
@@ -350,9 +352,9 @@ RSpec.describe Identity::Hostdata do
     before do
       stub_request(:put, 'http://169.254.169.254/latest/api/token').
         with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-        to_return(body: "bhasdkjhas82")
+        to_return(body: ec2_api_token)
       stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-        with(headers: { 'X-aws-ec2-metadata-token' => 'bhasdkjhas82' }).
+        with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
         to_return(body: {
           'accountId' => '12345',
           'region' => 'us-east-1',
