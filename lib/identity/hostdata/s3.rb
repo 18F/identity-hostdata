@@ -53,7 +53,8 @@ module Identity
         @s3_client ||= Aws::S3::Client.new(
           region: region,
           http_open_timeout: 5,
-          http_read_timeout: 5
+          http_read_timeout: 5,
+          compute_checksums: false,
         )
       end
     end
