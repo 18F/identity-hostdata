@@ -54,6 +54,8 @@ module Identity
           region: region,
           http_open_timeout: 5,
           http_read_timeout: 5
+          signature_version: 'v4',
+          compute_checksums: false,
         )
       end
     end
