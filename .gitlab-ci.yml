@@ -1,0 +1,4 @@
+include:
+  project: 'lg/identity-gitlab'
+  ref: 'main'
+  file: '.gitlab-ci-sync.yml'
