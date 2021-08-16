@@ -84,29 +84,30 @@ module Identity
       @ec2 ||= Identity::Hostdata::EC2.load
     end
 
+    # @return [String]
+    def self.bucket_name(name)
+      "#{name}.#{aws_account_id}-#{aws_region}"
+    end
+
     # @return [S3] An S3 object configured to use the app-secrets bucket
     def self.app_secrets_s3(logger: default_logger, s3_client: nil)
-      bucket = "login-gov.app-secrets.#{aws_account_id}-#{aws_region}"
-
       Identity::Hostdata::S3.new(
         env: env,
         region: aws_region,
         logger: logger,
         s3_client: s3_client,
-        bucket: bucket
+        bucket: bucket_name('login-gov.app-secrets')
       )
     end
 
     # @return [S3] An S3 object configured to use the secrets bucket
     def self.secrets_s3(logger: default_logger, s3_client: nil)
-      bucket = "login-gov.secrets.#{aws_account_id}-#{aws_region}"
-
       Identity::Hostdata::S3.new(
         env: env,
         region: aws_region,
         logger: logger,
         s3_client: s3_client,
-        bucket: bucket
+        bucket: bucket_name('login-gov.secrets')
       )
     end
 
