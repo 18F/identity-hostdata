@@ -23,7 +23,7 @@ module Identity
       end
 
       def read_configuration(rails_env, write_copy_to: nil)
-        if write_copy_to && !File.exists?(write_copy_to)
+        if write_copy_to && !File.exist?(write_copy_to)
           FileUtils.mkdir_p(File.dirname(write_copy_to))
           File.write(write_copy_to, base_configuration.to_yaml)
           FileUtils.chmod(0o640, write_copy_to)
@@ -52,7 +52,7 @@ module Identity
         local_config_filepath = File.join(app_root, 'config', 'application.yml')
         raw_configs = if Identity::Hostdata.in_datacenter?
                         app_secrets_s3.read_file(app_configuration_s3_path)
-                      elsif File.exists?(local_config_filepath)
+                      elsif File.exist?(local_config_filepath)
                         File.read(local_config_filepath)
                       end
         YAML.safe_load(raw_configs || '{}') || {}
@@ -64,7 +64,7 @@ module Identity
 
         raw_configs = if Identity::Hostdata.in_datacenter?
                         app_secrets_s3.read_file(role_configuration_s3_path)
-                      elsif File.exists?(local_config_filepath)
+                      elsif File.exist?(local_config_filepath)
                         File.read(local_config_filepath)
                       end
 
