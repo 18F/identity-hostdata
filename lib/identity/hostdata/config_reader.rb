@@ -50,7 +50,7 @@ module Identity
 
       def app_override_configuration
         local_config_filepath = File.join(app_root, 'config', 'application.yml')
-        raw_configs = if Identity::Hostdata.in_datacenter?
+        raw_configs = if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
                         app_secrets_s3.read_file(app_configuration_s3_path)
                       elsif File.exist?(local_config_filepath)
                         File.read(local_config_filepath)
@@ -62,7 +62,7 @@ module Identity
         return {} if role_configuration_filename.nil?
         local_config_filepath = File.join(app_root, 'config', role_configuration_filename)
 
-        raw_configs = if Identity::Hostdata.in_datacenter?
+        raw_configs = if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
                         app_secrets_s3.read_file(role_configuration_s3_path)
                       elsif File.exist?(local_config_filepath)
                         File.read(local_config_filepath)
