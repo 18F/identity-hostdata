@@ -9,6 +9,11 @@ require "active_support/core_ext/hash/except"
 module Identity
   module Hostdata
     class ConfigReader
+      ConfigVersion = Struct.new(
+        :content,
+        :version,
+        keyword_init: true,
+      )
       attr_reader :app_root, :logger
 
       # @param [Pathname] app_root
@@ -34,45 +39,70 @@ module Identity
         ).transform_keys(&:to_sym)
       end
 
+      def configuration_version
+        [role_override_configuration.version, app_override_configuration.version, default_configuration.version].compact.join('_')
+      end
+
       private
 
       def base_configuration
-        @base_configuration ||= default_configuration.deep_merge(
-          app_override_configuration,
+        @base_configuration ||= default_configuration.content.deep_merge(
+          app_override_configuration.content,
         ).deep_merge(
-          role_override_configuration,
+          role_override_configuration.content,
         )
       end
 
       def default_configuration
-        YAML.safe_load(File.read(File.join(app_root, 'config', 'application.yml.default')))
+        return @default_configuration if defined?(@default_configuration)
+        path = File.join(app_root, 'config', 'application.yml.default')
+        @default_configuration = config_version_from_local_file(path: path)
       end
 
       def app_override_configuration
+        return @app_override_configuration if defined?(@app_override_configuration)
+
         local_config_filepath = File.join(app_root, 'config', 'application.yml')
-        raw_configs = if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
-                        app_secrets_s3.read_file(app_configuration_s3_path)
-                      elsif File.exist?(local_config_filepath)
-                        File.read(local_config_filepath)
-                      end
-        YAML.safe_load(raw_configs || '{}') || {}
+
+        @app_override_configuration = if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
+          s3_object = app_secrets_s3.make_s3_get_object_request(app_configuration_s3_path)
+          ConfigVersion.new(content: s3_object.body.read, version: s3_object.last_modified.iso8601)
+        elsif File.exist?(local_config_filepath)
+          config_version_from_local_file(path: local_config_filepath)
+        else
+          ConfigVersion.new(content: {}, version: nil)
+        end
+
+        @app_override_configuration
       end
 
       def role_override_configuration
-        return {} if role_configuration_filename.nil?
+        return @role_override_configuration if defined?(@role_override_configuration)
+        return ConfigVersion.new(content: {}, version: nil) if role_configuration_filename.nil?
+
         local_config_filepath = File.join(app_root, 'config', role_configuration_filename)
 
-        raw_configs = if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
-                        app_secrets_s3.read_file(role_configuration_s3_path)
-                      elsif File.exist?(local_config_filepath)
-                        File.read(local_config_filepath)
-                      end
+        @role_override_configuration = if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
+          s3_object = app_secrets_s3.make_s3_get_object_request(role_configuration_s3_path)
+          ConfigVersion.new(content: s3_object.body.read, version: s3_object.last_modified.iso8601)
+        elsif File.exist?(local_config_filepath)
+          config_version_from_local_file(path: local_config_filepath)
+        else
+          ConfigVersion.new(content: {}, version: nil)
+        end
 
-        YAML.safe_load(raw_configs || '{}') || {}
+        @role_override_configuration
       end
 
       def app_secrets_s3
         @app_secrets_s3 ||= Identity::Hostdata.app_secrets_s3(logger: @logger, s3_client: @s3_client)
+      end
+
+      def config_version_from_local_file(path:)
+        path = File.join(app_root, 'config', 'application.yml.default')
+        stat = File.stat(path)
+        content = YAML.safe_load(File.read(path))
+        ConfigVersion.new(content: content, version: stat.mtime.iso8601)
       end
 
       def app_configuration_s3_path
