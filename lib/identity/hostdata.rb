@@ -15,7 +15,7 @@ module Identity
     INSTANCE_ROLE_PATH = File.join(CONFIG_DIR, 'info/role')
 
     class << self
-      attr_reader :config, :config_builder
+      attr_reader :config, :config_builder, :configuration_version
     end
 
     # @return [String]
@@ -39,14 +39,16 @@ module Identity
     # @yieldparam [Identity::Hostdata::ConfigBuilder] builder yields the config builder, keys can be added via +builder#add+
     # @see Identity::Hostdata::ConfigBuilder
     def self.load_config!(app_root:, rails_env:, logger: nil, s3_client: nil, write_copy_to: nil, &block)
-      values = Identity::Hostdata::ConfigReader.new(
+      reader = Identity::Hostdata::ConfigReader.new(
         app_root: app_root,
         logger: logger || self.logger,
         s3_client: s3_client,
-      ).read_configuration(rails_env, write_copy_to: write_copy_to)
+      )
 
       @config_builder = ConfigBuilder.new
-      @config = @config_builder.build!(values, &block)
+      @config = @config_builder.build!(reader.read_configuration(rails_env, write_copy_to: write_copy_to), &block)
+      @configuration_version = reader.configuration_version
+      @config
     end
 
     # @return [Hash] parses the environment's config JSON

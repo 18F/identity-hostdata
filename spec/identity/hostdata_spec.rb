@@ -393,7 +393,11 @@ RSpec.describe Identity::Hostdata do
 
       s3_client.stub_responses(
         :get_object,
-        { body: '{"production":{"config_value":"prod_override"}}' }
+        {
+          body: '{"production":{"config_value":"prod_override"}}',
+          last_modified: Time.now,
+          version_id: '123',
+        }
       )
 
       FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
