@@ -55,6 +55,7 @@ module Identity
           http_open_timeout: 5,
           http_read_timeout: 5,
           compute_checksums: false,
+          instance_profile_credentials_retries: 3,
         )
       end
     end
