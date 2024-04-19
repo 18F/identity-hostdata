@@ -1,3 +1,11 @@
+# 4.0.0
+
+- **Breaking Change**: `Identity::Hostdata.config` is renamed to `Identity::Hostdata.host_config`
+
+- **Breaking Change**: `LoginGov` namespace removed
+
+- New wrapper around S3 configs: `Identity::Hostdata.config`
+
 # 3.2.0
 
 - Update to use V2 of the EC2 instance metadata service

@@ -21,7 +21,19 @@ RSpec.describe Identity::Hostdata do
     stub_const('ENV', env)
   end
 
-  let(:ec2_api_token) { SecureRandom.hex }
+  def stub_ec2_metadata
+    ec2_api_token = SecureRandom.hex
+
+    stub_request(:put, 'http://169.254.169.254/latest/api/token').
+      with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
+      to_return(body: ec2_api_token)
+    stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
+      with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
+      to_return(body: {
+        'accountId' => '12345',
+        'region' => 'us-east-1',
+      }.to_json)
+  end
 
   describe '.domain' do
     context 'when /etc/login.gov exists (in a datacenter environment)' do
@@ -148,15 +160,7 @@ RSpec.describe Identity::Hostdata do
 
     context 'when a region env var is not set' do
       it 'uses the EC2 instance metadata' do
-        stub_request(:put, 'http://169.254.169.254/latest/api/token').
-          with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-          to_return(body: ec2_api_token)
-        stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-          with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
-          to_return(body: {
-            'accountId' => '12345',
-            'region' => 'us-east-1',
-          }.to_json)
+        stub_ec2_metadata
 
         expect(Identity::Hostdata.aws_region).to eq('us-east-1')
       end
@@ -174,15 +178,7 @@ RSpec.describe Identity::Hostdata do
 
     context 'when an account id env var is not set' do
       it 'uses the EC2 instance metadata' do
-        stub_request(:put, 'http://169.254.169.254/latest/api/token').
-          with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-          to_return(body: ec2_api_token)
-        stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-          with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
-          to_return(body: {
-            'accountId' => '12345',
-            'region' => 'us-east-1',
-          }.to_json)
+        stub_ec2_metadata
 
         expect(Identity::Hostdata.aws_account_id).to eq('12345')
       end
@@ -305,15 +301,7 @@ RSpec.describe Identity::Hostdata do
 
   describe '.app_secrets_s3' do
     before do
-      stub_request(:put, 'http://169.254.169.254/latest/api/token').
-          with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-          to_return(body: ec2_api_token)
-      stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-        with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
-        to_return(body: {
-          'accountId' => '12345',
-          'region' => 'us-east-1',
-        }.to_json)
+      stub_ec2_metadata
 
       FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
       File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'int' }
@@ -350,15 +338,7 @@ RSpec.describe Identity::Hostdata do
 
   describe '.secrets_s3' do
     before do
-      stub_request(:put, 'http://169.254.169.254/latest/api/token').
-        with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-        to_return(body: ec2_api_token)
-      stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-        with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
-        to_return(body: {
-          'accountId' => '12345',
-          'region' => 'us-east-1',
-        }.to_json)
+      stub_ec2_metadata
 
       FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
       File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'int' }
@@ -394,15 +374,7 @@ RSpec.describe Identity::Hostdata do
 
   describe '.bucket_name' do
     before do
-      stub_request(:put, 'http://169.254.169.254/latest/api/token').
-          with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-          to_return(body: ec2_api_token)
-      stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-        with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
-        to_return(body: {
-          'accountId' => '12345',
-          'region' => 'us-east-1',
-        }.to_json)
+      stub_ec2_metadata
     end
 
     it 'adds in the acccount ID and region to make a bucket name' do
@@ -421,6 +393,46 @@ RSpec.describe Identity::Hostdata do
       Identity::Hostdata.logger = logger
 
       expect(Identity::Hostdata.logger).to eq(logger)
+    end
+  end
+
+  describe '.load_config!' do
+    let(:rails_env) { 'production' }
+    let(:logger) { Logger.new('/dev/null') }
+
+    let(:s3_client) { Aws::S3::Client.new(stub_responses: true) }
+
+    before do
+      stub_ec2_metadata
+
+      s3_client.stub_responses(
+        :get_object,
+        { body: '{"production":{"config_value":"prod_override"}}' }
+      )
+
+      FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
+      File.open("#{@root}/etc/login.gov/info/role", 'w') { |f| f.puts 'idp' }
+      File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'staging' }
+
+      FileUtils.mkdir_p("#{@root}/config")
+      File.open("#{@root}/config/application.yml.default", 'w') do |f|
+        f.write <<~STR
+          config_value: 'default'
+        STR
+      end
+    end
+
+    it 'loads data from s3 and sets it as the .config' do
+      Identity::Hostdata.load_config!(
+        app_root: @root,
+        logger: logger,
+        s3_client: s3_client,
+        rails_env: rails_env
+      ) do |builder|
+        builder.add(:config_value, type: :string)
+      end
+
+      expect(Identity::Hostdata.config.config_value).to eq('prod_override')
     end
   end
 end

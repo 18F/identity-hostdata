@@ -1,3 +1,4 @@
+require "identity/hostdata/config_builder"
 require "identity/hostdata/config_reader"
 require "identity/hostdata/ec2"
 require "identity/hostdata/s3"
@@ -13,6 +14,10 @@ module Identity
     ENV_PATH = File.join(CONFIG_DIR, 'info/env')
     INSTANCE_ROLE_PATH = File.join(CONFIG_DIR, 'info/role')
 
+    class << self
+      attr_reader :config, :config_builder
+    end
+
     # @return [String]
     def self.domain
       return @domain if defined?(@domain)
@@ -27,6 +32,21 @@ module Identity
       @env = ENV['LOGIN_ENV'] || File.read(File.join(root.to_s, ENV_PATH)).chomp
     rescue Errno::ENOENT => err
       raise MissingConfigError, err.message if in_datacenter?
+    end
+
+    # @param [String] rails_env the +Rails.env+
+    # Sets +.config+ and +.config_builder+
+    # @yieldparam [Identity::Hostdata::ConfigBuilder] builder yields the config builder, keys can be added via +builder#add+
+    # @see Identity::Hostdata::ConfigBuilder
+    def self.load_config!(app_root:, rails_env:, logger: nil, s3_client: nil, write_copy_to: nil, &block)
+      values = Identity::Hostdata::ConfigReader.new(
+        app_root: app_root,
+        logger: logger || self.logger,
+        s3_client: s3_client,
+      ).read_configuration(rails_env, write_copy_to: write_copy_to)
+
+      @config_builder = ConfigBuilder.new
+      @config = @config_builder.build!(values, &block)
     end
 
     # @return [Hash] parses the environment's config JSON
