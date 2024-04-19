@@ -30,8 +30,8 @@ module Identity
     end
 
     # @return [Hash] parses the environment's config JSON
-    def self.config
-      return @config if defined?(@config)
+    def self.host_config
+      return @host_config if defined?(@host_config)
 
       config_path = File.join(
         root.to_s,
@@ -41,7 +41,7 @@ module Identity
       )
       config_contents = ENV['LOGIN_HOST_CONFIG'] || File.read(config_path)
 
-      @config = JSON.parse(config_contents, symbolize_names: true)
+      @host_config = JSON.parse(config_contents, symbolize_names: true)
     rescue Errno::ENOENT => err
       raise MissingConfigError, err.message if in_datacenter?
       {}

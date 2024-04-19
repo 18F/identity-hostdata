@@ -243,7 +243,7 @@ RSpec.describe Identity::Hostdata do
     end
   end
 
-  describe '.config' do
+  describe '.host_config' do
     let(:config_data) do
       {
         description: 'the staging data',
@@ -269,13 +269,13 @@ RSpec.describe Identity::Hostdata do
         end
 
         it 'parses the contents of the file' do
-          expect(Identity::Hostdata.config).to eq(config_data)
+          expect(Identity::Hostdata.host_config).to eq(config_data)
         end
       end
 
       context 'when the info/env file does not exist' do
         it 'blows up' do
-          expect { Identity::Hostdata.config }.
+          expect { Identity::Hostdata.host_config }.
             to raise_error(Identity::Hostdata::MissingConfigError)
         end
       end
@@ -292,13 +292,13 @@ RSpec.describe Identity::Hostdata do
       end
 
       it 'parses and returns the config in the env' do
-        expect(Identity::Hostdata.config).to eq(config_data)
+        expect(Identity::Hostdata.host_config).to eq(config_data)
       end
     end
 
     context 'when /etc/login.gov does not exist (development environment)' do
       it 'is an empty hash' do
-        expect(Identity::Hostdata.config).to eq({})
+        expect(Identity::Hostdata.host_config).to eq({})
       end
     end
   end
