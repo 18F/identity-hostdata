@@ -433,6 +433,7 @@ RSpec.describe Identity::Hostdata do
       end
 
       expect(Identity::Hostdata.config.config_value).to eq('prod_override')
+      expect(Identity::Hostdata.config_builder.key_types).to include(config_value: :string)
     end
   end
 end
