@@ -21,6 +21,21 @@ Identity::Hostdata.domain
 # => "login.gov"
 ```
 
+Set configs from YML files in S3
+
+```ruby
+Identity::Hostdata.load_config!(
+  app_root: Rails.root,
+  rails_env: Rails.env
+) do |builder|
+  builder.add(:some_option, type: :string)
+  builder.add(:other_option, type: :json)
+end
+
+Identity::Hostdata.config.some_option
+# => "value"
+```
+
 Download configs from S3:
 
 ```ruby
