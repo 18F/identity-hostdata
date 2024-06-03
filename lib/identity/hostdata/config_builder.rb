@@ -93,11 +93,6 @@ module Identity
         @written_env[key] = converted_value.freeze
       end
 
-      # @api private
-      def convert!(key:, value:, type:, allow_nil:, enum:, options:)
-        converted_value
-      end
-
       # @param [Hash] values the configuration values to read from to populate the config
       # @yieldparam [ConfigBuilder] builder for defining configuration values and types
       # @return [RedactedStruct]
