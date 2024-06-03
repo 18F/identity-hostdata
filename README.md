@@ -21,7 +21,7 @@ Identity::Hostdata.domain
 # => "login.gov"
 ```
 
-Set configs from YML files in S3 orSSM
+Set configs from YML files in S3 or SSM
 
 ```ruby
 Identity::Hostdata.load_config!(
