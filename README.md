@@ -21,7 +21,7 @@ Identity::Hostdata.domain
 # => "login.gov"
 ```
 
-Set configs from YML files in S3 or SSM
+Set configs from YML files in S3 or Secrets Manager
 
 ```ruby
 Identity::Hostdata.load_config!(
@@ -33,7 +33,12 @@ Identity::Hostdata.load_config!(
   builder.add(:other_option, type: :json)
 
   # SSM
-  builder.add_ssm(:prop_name, 'ssm-name-goes-here', type: :string)
+  builder.add(:prop_name, secrets_manager_name: 'secrets-manager-name', type: :string)
+
+  # custom parsing of values
+  builder.add(:other_prop_name, type: :string) do |raw|
+    JSON.parse(raw)['nested-key']
+  end
 end
 
 Identity::Hostdata.config.some_option
