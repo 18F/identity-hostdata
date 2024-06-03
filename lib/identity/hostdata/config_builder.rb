@@ -117,7 +117,7 @@ module Identity
       end
 
       def secrets_client
-        @secrets_client ||= Aws::SSM::SecretsManager.new(
+        @secrets_client ||= Aws::SecretsManager::Client.new(
           http_idle_timeout: 5,
           http_open_timeout: 5,
           http_read_timeout: 5,

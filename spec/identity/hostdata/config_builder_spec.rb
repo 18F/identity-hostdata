@@ -26,14 +26,15 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
   before do
     stub_const('ENV', { 'SOME_ENV_VAR' => 'eee' })
 
-    allow(config_builder).to receive(:secrets_client).
-      and_return(Aws::SecretsManager::Client.new(stub_responses: {
+    Aws.config[:secretsmanager] = {
+      stub_responses: {
         get_secret_value: proc do |context|
           {
             secret_string: secrets_manager_values.fetch(context.params[:secret_id]),
           }
         end,
-      }))
+      }
+    }
   end
 
   let(:secrets_manager_values) do
