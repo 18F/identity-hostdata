@@ -32,7 +32,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activesupport', '>= 6.1', '< 8'
   spec.add_dependency 'aws-sdk-s3', '~> 1.8'
-  spec.add_dependency 'aws-sdk-ssm', '~> 1.167.0'
+  spec.add_dependency 'aws-sdk-secretsmanager', '>= 1.91'
   spec.add_dependency 'redacted_struct', '>= 2.0'
 
   spec.add_development_dependency "bundler", ">= 1.15"

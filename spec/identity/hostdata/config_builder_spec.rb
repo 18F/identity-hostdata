@@ -26,19 +26,17 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
   before do
     stub_const('ENV', { 'SOME_ENV_VAR' => 'eee' })
 
-    allow(config_builder).to receive(:ssm_client).
-      and_return(Aws::SSM::Client.new(stub_responses: {
-        get_parameter: proc do |context|
+    allow(config_builder).to receive(:secrets_client).
+      and_return(Aws::SecretsManager::Client.new(stub_responses: {
+        get_secret_value: proc do |context|
           {
-            parameter: {
-              value: ssm_values.fetch(context.params[:name]),
-            }
+            secret_string: secrets_manager_values.fetch(context.params[:secret_id]),
           }
         end,
       }))
   end
 
-  let(:ssm_values) do
+  let(:secrets_manager_values) do
     {
       'redshift!example-awsuser' => { 'username' => 'ssm-username', 'password' => 'pass' }.to_json
     }
@@ -63,8 +61,11 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
       builder.add(:commas_key, type: :comma_separated_string_list)
       builder.add(:json_array, type: :json)
       builder.add(:string_env_key)
-
-      builder.add_ssm(:redshift_username, 'redshift!example-awsuser', type: :string) do |raw|
+      builder.add(
+        :redshift_username,
+        secrets_manager_name: 'redshift!example-awsuser',
+        type: :string
+      ) do |raw|
         JSON.parse(raw)['username']
       end
     end
