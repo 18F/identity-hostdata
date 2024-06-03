@@ -25,8 +25,24 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
 
   before do
     stub_const('ENV', { 'SOME_ENV_VAR' => 'eee' })
+
+    allow(config_builder).to receive(:ssm_client).
+      and_return(Aws::SSM::Client.new(stub_responses: {
+        get_parameter: proc do |context|
+          {
+            parameter: {
+              value: ssm_values.fetch(context.params[:name]),
+            }
+          }
+        end,
+      }))
   end
 
+  let(:ssm_values) do
+    {
+      'redshift!example-awsuser' => { 'username' => 'ssm-username', 'password' => 'pass' }.to_json
+    }
+  end
   let(:values) do
     {
       string_key: 'aaa',
@@ -47,6 +63,10 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
       builder.add(:commas_key, type: :comma_separated_string_list)
       builder.add(:json_array, type: :json)
       builder.add(:string_env_key)
+
+      builder.add_ssm(:redshift_username, 'redshift!example-awsuser', type: :string) do |raw|
+        JSON.parse(raw)['username']
+      end
     end
   end
 
@@ -60,6 +80,8 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
       expect(result.commas_key).to eq(%w[a b c ])
       expect(result.json_array).to eq(%w[d e f])
       expect(result.string_env_key).to eq('eee')
+
+      expect(result.redshift_username).to eq('ssm-username')
     end
   end
 
@@ -74,6 +96,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
         commas_key: :comma_separated_string_list,
         json_array: :json,
         string_env_key: :string,
+        redshift_username: :string,
       )
     end
   end

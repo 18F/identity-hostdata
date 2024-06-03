@@ -1,6 +1,7 @@
 require 'csv'
 require 'json'
 require 'redacted_struct'
+require 'aws-sdk-ssm'
 
 module Identity
   module Hostdata
@@ -68,13 +69,48 @@ module Identity
 
         key_types[key] = type
 
+        converted_value = convert!(
+          key: key,
+          value: value,
+          type: type,
+          allow_nil: allow_nil,
+          enum: enum,
+          options: options,
+        )
+
+        @written_env[key] = converted_value.freeze
+      end
+
+      def add_ssm(prop_name, ssm_name, type: :string, allow_nil: false, enum: nil, options: {})
+        raw_value = load_ssm_value(ssm_name)
+
+        key_types[prop_name] = type
+
+        converted_value = if block_given?
+          yield raw_value
+        else
+          convert!(
+            key: prop_name,
+            value: raw_value,
+            type: type,
+            allow_nil: allow_nil,
+            enum: enum,
+            options: options,
+          )
+        end
+
+        @written_env[prop_name] = converted_value.freeze
+      end
+
+      # @api private
+      def convert!(key:, value:, type:, allow_nil:, enum:, options:)
         converted_value = CONVERTERS.fetch(type).call(value, options: options) if !value.nil?
         raise "#{key} is required but is not present" if converted_value.nil? && !allow_nil
         if enum && !(enum.include?(converted_value) || (converted_value.nil? && allow_nil))
           raise "unexpected #{key}: #{value}, expected one of #{enum}"
         end
 
-        @written_env[key] = converted_value.freeze
+        converted_value
       end
 
       # @param [Hash] values the configuration values to read from to populate the config
@@ -98,6 +134,21 @@ module Identity
 
         RedactedStruct.new(*@written_env.keys, keyword_init: true).
           new(**@written_env)
+      end
+
+      def load_ssm_value(name)
+        ssm_client.get_parameter(
+          name: name,
+          with_decryption: true,
+        ).parameter.value.chomp
+      end
+
+      def ssm_client
+        @ssm_client ||= Aws::SSM::Client.new(
+          http_idle_timeout: 3,
+          http_open_timeout: 3,
+          http_read_timeout: 3,
+        )
       end
     end
   end
