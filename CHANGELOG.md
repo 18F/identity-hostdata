@@ -1,6 +1,6 @@
 # 4.1.0
 
-- Add `ConfigBuilder#add_ssm` to load secrets from SSM
+- Add AWS Secrets Manager support to `ConfigBuilder#add`
 
 # 4.0.0
 

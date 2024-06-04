@@ -32,8 +32,14 @@ Identity::Hostdata.load_config!(
   builder.add(:some_option, type: :string)
   builder.add(:other_option, type: :json)
 
-  # SSM
+  # Secrets Manager
   builder.add(:prop_name, secrets_manager_name: 'secrets-manager-name', type: :string)
+  builder.add(
+    :other_prop,
+    secrets_manager_name: "secrets-manager-dynamic-#{Identity::Hostdata.env}",
+    secrets_manager_local_name: "secrets-manager-dynamic-env",
+    type: :string,
+  )
 
   # custom parsing of values
   builder.add(:other_prop_name, type: :string) do |raw|
