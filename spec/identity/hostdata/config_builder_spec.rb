@@ -81,6 +81,14 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
       ) do |raw|
         JSON.parse(raw).fetch('username')
       end
+      builder.add(
+        :redshift_password,
+        secrets_manager_name: 'redshift!example-awsuser',
+        secrets_manager_local_name: 'redshift_local_override',
+        type: :string
+      ) do |raw|
+        JSON.parse(raw).fetch('password')
+      end
     end
   end
 
@@ -99,6 +107,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
         expect(result.string_env_key).to eq('eee')
 
         expect(result.redshift_username).to eq('ssm-username')
+        expect(result.redshift_password).to eq('pass')
       end
     end
 
@@ -108,6 +117,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
       let(:values) do
         super().merge(
           :'redshift!example-awsuser' => { 'username' => 'local-username' }.to_json,
+          redshift_local_override: { 'password' => 'local-password' }.to_json,
         )
       end
 
@@ -121,6 +131,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
         result = build!
 
         expect(result.redshift_username).to eq('local-username')
+        expect(result.redshift_password).to eq('local-password')
       end
     end
   end
@@ -137,6 +148,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
         json_array: :json,
         string_env_key: :string,
         redshift_username: :string,
+        redshift_password: :string,
       )
     end
   end
