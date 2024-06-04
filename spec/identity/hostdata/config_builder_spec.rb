@@ -23,19 +23,31 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
     end
   end
 
+  let(:in_datacenter) { true }
   before do
-    stub_const('ENV', { 'SOME_ENV_VAR' => 'eee' })
+    Identity::Hostdata.reset!
 
-    Aws.config[:secretsmanager] = {
-      stub_responses: {
-        get_secret_value: proc do |context|
-          {
-            secret_string: secrets_manager_values.fetch(context.params[:secret_id]),
-          }
-        end,
+    stub_const(
+      'ENV',
+      {
+        'SOME_ENV_VAR' => 'eee',
+        'LOGIN_DATACENTER' => (in_datacenter ? 'true' : nil),
+      },
+    )
+
+    if in_datacenter
+      Aws.config[:secretsmanager] = {
+        stub_responses: {
+          get_secret_value: proc do |context|
+            {
+              secret_string: secrets_manager_values.fetch(context.params[:secret_id]),
+            }
+          end,
+        }
       }
-    }
+    end
   end
+  after { Identity::Hostdata.reset! }
 
   let(:secrets_manager_values) do
     {
@@ -67,23 +79,49 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
         secrets_manager_name: 'redshift!example-awsuser',
         type: :string
       ) do |raw|
-        JSON.parse(raw)['username']
+        JSON.parse(raw).fetch('username')
       end
     end
   end
 
   describe '#build!' do
-    it 'returns a struct with the values parsed correctly' do
-      result = build!
+    context 'in a deployed environment' do
+      let(:in_datacenter) { true }
 
-      expect(result.string_key).to eq('aaa')
-      expect(result.boolean_key).to eq(true)
-      expect(result.int_key).to eq(111)
-      expect(result.commas_key).to eq(%w[a b c ])
-      expect(result.json_array).to eq(%w[d e f])
-      expect(result.string_env_key).to eq('eee')
+      it 'returns a struct with the values parsed correctly' do
+        result = build!
 
-      expect(result.redshift_username).to eq('ssm-username')
+        expect(result.string_key).to eq('aaa')
+        expect(result.boolean_key).to eq(true)
+        expect(result.int_key).to eq(111)
+        expect(result.commas_key).to eq(%w[a b c ])
+        expect(result.json_array).to eq(%w[d e f])
+        expect(result.string_env_key).to eq('eee')
+
+        expect(result.redshift_username).to eq('ssm-username')
+      end
+    end
+
+    context 'in a local environment' do
+      let(:in_datacenter) { false }
+
+      let(:values) do
+        super().merge(
+          :'redshift!example-awsuser' => { 'username' => 'local-username' }.to_json,
+        )
+      end
+
+      it 'does not call AWS at all' do
+        build!
+
+        expect(a_request(:any, /.*/)).to have_not_been_made
+      end
+
+      it 'returns a struct with the values parsed correctly from local stubs' do
+        result = build!
+
+        expect(result.redshift_username).to eq('local-username')
+      end
     end
   end
 

@@ -73,7 +73,11 @@ module Identity
         options: {}
       )
         value = if secrets_manager_name
-          secrets_client.get_secret_value(secret_id: secrets_manager_name).secret_string
+          if Identity::Hostdata.in_datacenter?
+            secrets_client.get_secret_value(secret_id: secrets_manager_name).secret_string
+          else
+            @read_env[secrets_manager_name.to_sym]
+          end
         else
           @read_env[key]
         end
