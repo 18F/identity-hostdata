@@ -1,6 +1,25 @@
 require 'spec_helper'
 
 RSpec.describe Identity::Hostdata::EC2 do
+  let(:document) do
+    {
+      'privateIp' => '172.16.33.170',
+      'devpayProductCodes' => nil,
+      'availabilityZone' => 'us-west-2b',
+      'version' => '2010-08-31',
+      'instanceId' => 'i-12345',
+      'billingProducts' => nil,
+      'instanceType' => 'c3.xlarge',
+      'accountId' => '12345',
+      'architecture' => 'x86_64',
+      'kernelId' => nil,
+      'ramdiskId' => nil,
+      'imageId' => 'ami-7e22c506',
+      'pendingTime' => '2017-08-24T18:10:24Z',
+      'region' => 'us-west-2',
+    }
+  end
+
   describe '.load' do
     subject(:load) { Identity::Hostdata::EC2.load }
 
@@ -23,25 +42,6 @@ RSpec.describe Identity::Hostdata::EC2 do
 
       expect { load }.to raise_error(Net::OpenTimeout)
     end
-  end
-
-  let(:document) do
-    {
-      'privateIp' => '172.16.33.170',
-      'devpayProductCodes' => nil,
-      'availabilityZone' => 'us-west-2b',
-      'version' => '2010-08-31',
-      'instanceId' => 'i-12345',
-      'billingProducts' => nil,
-      'instanceType' => 'c3.xlarge',
-      'accountId' => '12345',
-      'architecture' => 'x86_64',
-      'kernelId' => nil,
-      'ramdiskId' => nil,
-      'imageId' => 'ami-7e22c506',
-      'pendingTime' => '2017-08-24T18:10:24Z',
-      'region' => 'us-west-2',
-    }
   end
 
   subject(:ec2) { Identity::Hostdata::EC2.new(document) }
