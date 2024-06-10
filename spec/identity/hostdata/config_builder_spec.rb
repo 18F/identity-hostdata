@@ -171,7 +171,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
         string_env_key: :string,
         redshift_username: :string,
         redshift_password: :string,
-        :string_secrets_manager_key => :string,
+        string_secrets_manager_key: :string,
       )
     end
   end
