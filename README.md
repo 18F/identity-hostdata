@@ -21,15 +21,29 @@ Identity::Hostdata.domain
 # => "login.gov"
 ```
 
-Set configs from YML files in S3
+Set configs from YML files in S3 or Secrets Manager
 
 ```ruby
 Identity::Hostdata.load_config!(
   app_root: Rails.root,
   rails_env: Rails.env
 ) do |builder|
+  # YML
   builder.add(:some_option, type: :string)
   builder.add(:other_option, type: :json)
+
+  # Secrets Manager
+  builder.add(:prop_name, secrets_manager_name: 'secrets-manager-name', type: :string)
+  builder.add(
+    :other_prop,
+    secrets_manager_name: "secrets-manager-dynamic-#{Identity::Hostdata.env || 'local'}",
+    type: :string,
+  )
+
+  # custom parsing of values
+  builder.add(:other_prop_name, type: :string) do |raw|
+    JSON.parse(raw)['nested-key']
+  end
 end
 
 Identity::Hostdata.config.some_option

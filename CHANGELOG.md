@@ -1,3 +1,7 @@
+# 4.1.0
+
+- Add AWS Secrets Manager support to `ConfigBuilder#add`
+
 # 4.0.0
 
 - **Breaking Change**: `Identity::Hostdata.config` is renamed to `Identity::Hostdata.host_config`

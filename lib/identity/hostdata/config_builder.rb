@@ -1,6 +1,7 @@
 require 'csv'
 require 'json'
 require 'redacted_struct'
+require 'aws-sdk-secretsmanager'
 
 module Identity
   module Hostdata
@@ -63,12 +64,38 @@ module Identity
         @key_types = {}
       end
 
-      def add(key, type: :string, allow_nil: false, enum: nil, options: {})
-        value = @read_env[key]
+      # @param key [Symbol] secret property name
+      # @param secrets_manager_name [String] if present, the secret_id for Secrets Manager to get
+      #   the value from in a deployed environment
+      # @param type [Symbol] secret type, used to parse raw value
+      # @param allow_nil [Boolean] whether or not a nil value is allowed
+      # @param enum [nil, Array] list of allowed values
+      # @param options [Hash] options hash, passed to per-type converter
+      def add(
+        key,
+        secrets_manager_name: nil,
+        type: :string,
+        allow_nil: false,
+        enum: nil,
+        options: {}
+      )
+        value = if secrets_manager_name
+          if Identity::Hostdata.in_datacenter?
+            secrets_client.get_secret_value(secret_id: secrets_manager_name).secret_string
+          else
+            @read_env[secrets_manager_name.to_sym]
+          end
+        else
+          @read_env[key]
+        end
 
         key_types[key] = type
 
-        converted_value = CONVERTERS.fetch(type).call(value, options: options) if !value.nil?
+        converted_value = if block_given?
+          yield value
+        else
+          CONVERTERS.fetch(type).call(value, options: options) if !value.nil?
+        end
         raise "#{key} is required but is not present" if converted_value.nil? && !allow_nil
         if enum && !(enum.include?(converted_value) || (converted_value.nil? && allow_nil))
           raise "unexpected #{key}: #{value}, expected one of #{enum}"
@@ -98,6 +125,16 @@ module Identity
 
         RedactedStruct.new(*@written_env.keys, keyword_init: true).
           new(**@written_env)
+      end
+
+      def secrets_client
+        @secrets_client ||= Aws::SecretsManager::Client.new(
+          region: Identity::Hostdata.aws_region,
+          http_idle_timeout: 5,
+          http_open_timeout: 5,
+          http_read_timeout: 5,
+          instance_profile_credentials_retries: 3,
+        )
       end
     end
   end
