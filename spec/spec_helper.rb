@@ -1,6 +1,7 @@
 require "bundler/setup"
 require "identity/hostdata"
 require "pp"
+require "support/ec2_helpers"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -12,6 +13,8 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  config.include(Ec2Helpers)
 end
 
 require 'webmock/rspec'

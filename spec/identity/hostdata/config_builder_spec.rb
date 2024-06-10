@@ -36,6 +36,8 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
     )
 
     if in_datacenter
+      stub_ec2_metadata
+
       Aws.config[:secretsmanager] = {
         stub_responses: {
           get_secret_value: proc do |context|
