@@ -15,13 +15,7 @@ module Identity
         # To use a string value directly, you can specify a string explicitly:
         # database_host: 'localhost'
         string: proc do |value|
-          if value.is_a?(Array) && value.length == 2 && value.first == 'env'
-            ENV.fetch(value[1])
-          elsif value.is_a?(String)
-            value
-          else
-            raise 'invalid system environment configuration value'
-          end
+          value.to_s
         end,
         symbol: proc { |value| value.to_sym },
         comma_separated_string_list: proc do |value|
@@ -90,18 +84,31 @@ module Identity
         end
 
         key_types[key] = type
+        raw_value = fetch_value_from_source(key, value)
 
         converted_value = if block_given?
-          yield value
+          yield raw_value
         else
-          CONVERTERS.fetch(type).call(value, options: options) if !value.nil?
+          CONVERTERS.fetch(type).call(raw_value, options: options) if !raw_value.nil?
         end
         raise "#{key} is required but is not present" if converted_value.nil? && !allow_nil
         if enum && !(enum.include?(converted_value) || (converted_value.nil? && allow_nil))
-          raise "unexpected #{key}: #{value}, expected one of #{enum}"
+          raise "unexpected #{key}: #{raw_value}, expected one of #{enum}"
         end
 
         @written_env[key] = converted_value.freeze
+      end
+
+      def fetch_value_from_source(key, value)
+        if value.is_a?(Array) && value.length == 2 && value.first == 'env'
+          ENV.fetch(value[1])
+        elsif value.is_a?(Array) && value.length == 2 && value.first == 'secrets_manager'
+          secrets_client.get_secret_value(secret_id: value[1]).secret_string
+        elsif value.is_a?(Array)
+          raise "invalid configuration value for #{key}"
+        else
+          value
+        end
       end
 
       # @param [Hash] values the configuration values to read from to populate the config
