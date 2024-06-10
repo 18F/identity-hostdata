@@ -133,6 +133,7 @@ module Identity
 
       def secrets_client
         @secrets_client ||= Aws::SecretsManager::Client.new(
+          region: Identity::Hostdata.aws_region,
           http_idle_timeout: 5,
           http_open_timeout: 5,
           http_read_timeout: 5,
