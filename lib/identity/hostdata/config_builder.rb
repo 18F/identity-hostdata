@@ -67,9 +67,6 @@ module Identity
       # @param key [Symbol] secret property name
       # @param secrets_manager_name [String] if present, the secret_id for Secrets Manager to get
       #   the value from in a deployed environment
-      # @param secrets_manager_local_name [String] if present, the key to look up a local equivalent
-      #   of a Secrets Manager secret in local development. When absent, +secrets_manager_name+ is
-      #   used locally
       # @param type [Symbol] secret type, used to parse raw value
       # @param allow_nil [Boolean] whether or not a nil value is allowed
       # @param enum [nil, Array] list of allowed values
@@ -77,7 +74,6 @@ module Identity
       def add(
         key,
         secrets_manager_name: nil,
-        secrets_manager_local_name: nil,
         type: :string,
         allow_nil: false,
         enum: nil,
@@ -87,7 +83,7 @@ module Identity
           if Identity::Hostdata.in_datacenter?
             secrets_client.get_secret_value(secret_id: secrets_manager_name).secret_string
           else
-            @read_env[(secrets_manager_local_name || secrets_manager_name).to_sym]
+            @read_env[secrets_manager_name.to_sym]
           end
         else
           @read_env[key]

@@ -36,8 +36,7 @@ Identity::Hostdata.load_config!(
   builder.add(:prop_name, secrets_manager_name: 'secrets-manager-name', type: :string)
   builder.add(
     :other_prop,
-    secrets_manager_name: "secrets-manager-dynamic-#{Identity::Hostdata.env}",
-    secrets_manager_local_name: "secrets-manager-dynamic-env",
+    secrets_manager_name: "secrets-manager-dynamic-#{Identity::Hostdata.env || 'local'}",
     type: :string,
   )
 

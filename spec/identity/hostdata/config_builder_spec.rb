@@ -86,7 +86,6 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
       builder.add(
         :redshift_password,
         secrets_manager_name: 'redshift!example-awsuser',
-        secrets_manager_local_name: 'redshift_local_override',
         type: :string
       ) do |raw|
         JSON.parse(raw).fetch('password')
@@ -118,8 +117,10 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
 
       let(:values) do
         super().merge(
-          :'redshift!example-awsuser' => { 'username' => 'local-username' }.to_json,
-          redshift_local_override: { 'password' => 'local-password' }.to_json,
+          :'redshift!example-awsuser' => {
+            'username' => 'local-username',
+            'password' => 'local-password',
+          }.to_json,
         )
       end
 
