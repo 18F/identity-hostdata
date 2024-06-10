@@ -100,12 +100,16 @@ module Identity
       end
 
       def fetch_value_from_source(key, value)
-        if value.is_a?(Array) && value.length == 2 && value.first == 'env'
-          ENV.fetch(value[1])
-        elsif value.is_a?(Array) && value.length == 2 && value.first == 'secrets_manager'
-          secrets_client.get_secret_value(secret_id: value[1]).secret_string
-        elsif value.is_a?(Array)
-          raise "invalid configuration value for #{key}"
+        if value.is_a?(Array)
+          type, name, *rest = value
+          case type
+          when 'env'
+            ENV.fetch(name)
+          when 'secrets_manager'
+            secrets_client.get_secret_value(secret_id: name).secret_string
+          else
+            raise "invalid configuration value for #{key}"
+          end
         else
           value
         end
