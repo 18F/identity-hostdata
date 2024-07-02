@@ -31,13 +31,13 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
       'ENV',
       {
         'SOME_ENV_VAR' => 'eee',
+        'LOGIN_AWS_REGION' => 'us-west-2',
         'LOGIN_DATACENTER' => (in_datacenter ? 'true' : nil),
       },
     )
 
     if in_datacenter
       stub_ec2_metadata
-
       Aws.config[:secretsmanager] = {
         stub_responses: {
           get_secret_value: proc do |context|
@@ -49,11 +49,13 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
       }
     end
   end
+
   after { Identity::Hostdata.reset! }
 
   let(:secrets_manager_values) do
     {
-      'redshift!example-awsuser' => { 'username' => 'ssm-username', 'password' => 'pass' }.to_json
+      'redshift!example-awsuser' => { 'username' => 'ssm-username', 'password' => 'pass' }.to_json,
+      'my_secrets_manager_key' => 'secrets_manager_secret',
     }
   end
   let(:values) do
@@ -64,6 +66,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
       commas_key: 'a,b,c',
       json_array: '["d","e","f"]',
       string_env_key: ['env', 'SOME_ENV_VAR'],
+      string_secrets_manager_key: ['secrets_manager', 'my_secrets_manager_key'],
       never_used_key: 'never'
     }
   end
@@ -90,6 +93,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
       ) do |raw|
         JSON.parse(raw).fetch('password')
       end
+      builder.add(:string_secrets_manager_key)
     end
   end
 
@@ -109,6 +113,8 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
 
         expect(result.redshift_username).to eq('ssm-username')
         expect(result.redshift_password).to eq('pass')
+
+        expect(result.string_secrets_manager_key).to eq('secrets_manager_secret')
       end
     end
 
@@ -136,6 +142,19 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
         expect(result.redshift_username).to eq('local-username')
         expect(result.redshift_password).to eq('local-password')
       end
+
+      context 'without secrets manager keys' do
+        let(:values) do
+          super().merge(string_secrets_manager_key: 'abc')
+        end
+
+        it 'does not call AWS at all' do
+          result = build!
+
+          expect(a_request(:any, /.*/)).to have_not_been_made
+          expect(result.string_secrets_manager_key).to eq('abc')
+        end
+      end
     end
   end
 
@@ -152,6 +171,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
         string_env_key: :string,
         redshift_username: :string,
         redshift_password: :string,
+        string_secrets_manager_key: :string,
       )
     end
   end
