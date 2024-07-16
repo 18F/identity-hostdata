@@ -36,3 +36,15 @@ install:
   script:
     - *bundle_install
     -  make setup
+
+
+test_app:
+  stage: test
+  cache:
+    - <<: *ruby_cache
+  script:
+    - *bundle_install
+    - make test
+  artifacts:
+    paths:
+      - /tmp/test-results
