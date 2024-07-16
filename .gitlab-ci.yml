@@ -1,4 +1,38 @@
-include:
-  project: 'lg/identity-gitlab'
-  ref: 'main'
-  file: '.gitlab-ci-sync.yml'
+# Images are built via the identity-devops GitLab pipeline.
+variables:
+  GITLAB_CI: 'true'
+  ECR_REGISTRY: '${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com'
+  IDP_CI_SHA: 'sha256:756a1d450b422720dee36cb9a6217687bcad1e40b780219d360989861ce94212'
+  JUNIT_OUTPUT: 'true'
+
+default:
+  image: '${ECR_REGISTRY}/idp/ci@${IDP_CI_SHA}'
+
+.bundle_install: &bundle_install
+  - bundle install
+
+.build_cache:
+  - &ruby_cache
+    key:
+      files:
+        - Gemfile.lock
+    paths:
+      - vendor/ruby
+    policy: pull
+
+stages:
+  - build
+  - test
+  - after_test
+
+install:
+  stage: build
+  variables:
+    RAILS_ENV: test
+  cache:
+    - <<: *ruby_cache
+      policy: pull-push
+
+  script:
+    - *bundle_install
+    -  make setup
