@@ -43,7 +43,6 @@ test_app:
   cache:
     - <<: *ruby_cache
   script:
-    - *bundle_install
     - make test
   artifacts:
     paths:
