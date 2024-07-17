@@ -2,14 +2,14 @@
 # Images are built via the identity-devops GitLab pipeline.
 
 variables:
-  BUNDLER_VERSION: "2.3.13"
+
   ECR_REGISTRY: '${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com'
 
 default:
   image: '${ECR_REGISTRY}/dashboard/ci:latest'
 
 before_script:
-  - gem install bundler --version $BUNDLER_VERSION
+  - gem install bundler 
 
 .bundle_install: &bundle_install
   -  bundle install --retry=3 --path vendor/bundle
