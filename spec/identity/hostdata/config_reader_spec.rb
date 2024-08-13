@@ -5,7 +5,6 @@ RSpec.describe Identity::Hostdata::ConfigReader do
     base_config: 'test'
     overriden_env_config: 'override me' # Overriden below for development'
     overriden_base_config: 'override me' # Overriden in application.yml
-    overriden_role_config: 'only override me on workers' # Overriden in worker.yml
 
     development:
       env_config: 'test'
@@ -15,11 +14,6 @@ RSpec.describe Identity::Hostdata::ConfigReader do
   OVERRIDE_YAML = <<~HEREDOC
     development:
       overriden_base_config: 'test'
-  HEREDOC
-
-  ROLE_YAML = <<~HEREDOC
-    development:
-      overriden_role_config: 'test'
   HEREDOC
 
   let(:app_root) { @app_root }
@@ -42,7 +36,6 @@ RSpec.describe Identity::Hostdata::ConfigReader do
     let(:s3_contents) do
       {
         'int/idp/v1/application.yml' => OVERRIDE_YAML,
-        'int/idp/v1/worker.yml' => ROLE_YAML,
       }
     end
     let(:ec2_api_token) { SecureRandom.hex }
@@ -87,27 +80,6 @@ RSpec.describe Identity::Hostdata::ConfigReader do
         env_config: 'test',
         overriden_env_config: 'test',
         overriden_base_config: 'test',
-        overriden_role_config: 'only override me on workers',
-      )
-    end
-
-    it 'merges the role configs if they exist' do
-      allow(Identity::Hostdata).to receive(:instance_role).and_return('worker')
-
-      configuration = reader.read_configuration('development')
-
-      expect(s3_client).to have_received(:get_object).with(
-        hash_including(key: 'int/idp/v1/application.yml'),
-      )
-      expect(s3_client).to have_received(:get_object).with(
-        hash_including(key: 'int/idp/v1/worker.yml'),
-      )
-      expect(configuration).to eq(
-        base_config: 'test',
-        env_config: 'test',
-        overriden_env_config: 'test',
-        overriden_base_config: 'test',
-        overriden_role_config: 'test',
       )
     end
 
@@ -116,19 +88,14 @@ RSpec.describe Identity::Hostdata::ConfigReader do
         allow(Identity::Hostdata).to receive(:instance_role).and_return('idp')
 
         s3_contents['int/idp/v1/application.yml'] = 'config1: hello'
-        s3_contents['int/idp/v1/web.yml'] = 'config2: world'
 
         expect(s3_client).to receive(:get_object).with(
           hash_including(key: 'int/idp/v1/application.yml')
-        ).and_call_original
-        expect(s3_client).to receive(:get_object).with(
-          hash_including(key: 'int/idp/v1/web.yml')
         ).and_call_original
 
         configuration = reader.read_configuration('development')
 
         expect(configuration[:config1]).to eq('hello')
-        expect(configuration[:config2]).to eq('world')
       end
     end
 
@@ -137,19 +104,13 @@ RSpec.describe Identity::Hostdata::ConfigReader do
         allow(Identity::Hostdata).to receive(:instance_role).and_return('worker')
 
         s3_contents['int/idp/v1/application.yml'] = 'config1: hello'
-        s3_contents['int/idp/v1/worker.yml'] = 'config2: world'
 
         expect(s3_client).to receive(:get_object).with(
           hash_including(key: 'int/idp/v1/application.yml')
         ).and_call_original
-        expect(s3_client).to receive(:get_object).with(
-          hash_including(key: 'int/idp/v1/worker.yml')
-        ).and_call_original
-
         configuration = reader.read_configuration('development')
 
         expect(configuration[:config1]).to eq('hello')
-        expect(configuration[:config2]).to eq('world')
       end
     end
 
@@ -158,7 +119,6 @@ RSpec.describe Identity::Hostdata::ConfigReader do
         allow(Identity::Hostdata).to receive(:instance_role).and_return('migration')
 
         s3_contents['int/idp/v1/application.yml'] = 'config1: hello'
-        s3_contents['int/idp/v1/worker.yml'] = 'config2: world'
 
         expect(s3_client).to receive(:get_object).with(
           hash_including(key: 'int/idp/v1/application.yml')
@@ -212,7 +172,6 @@ RSpec.describe Identity::Hostdata::ConfigReader do
         env_config: 'test',
         overriden_env_config: 'test',
         overriden_base_config: 'test',
-        overriden_role_config: 'only override me on workers',
       )
     end
   end
