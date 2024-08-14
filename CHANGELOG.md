@@ -1,3 +1,11 @@
+# 4.3.0
+
+- Remove support for role-based configuration
+
+# 4.2.0
+
+- Add Secrets Manager as a source for configuration values
+
 # 4.1.0
 
 - Add AWS Secrets Manager support to `ConfigBuilder#add`

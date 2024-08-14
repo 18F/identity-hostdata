@@ -39,8 +39,6 @@ module Identity
       def base_configuration
         @base_configuration ||= default_configuration.deep_merge(
           app_override_configuration,
-        ).deep_merge(
-          role_override_configuration,
         )
       end
 
@@ -58,19 +56,6 @@ module Identity
         YAML.safe_load(raw_configs || '{}') || {}
       end
 
-      def role_override_configuration
-        return {} if role_configuration_filename.nil?
-        local_config_filepath = File.join(app_root, 'config', role_configuration_filename)
-
-        raw_configs = if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
-                        app_secrets_s3.read_file(role_configuration_s3_path)
-                      elsif File.exist?(local_config_filepath)
-                        File.read(local_config_filepath)
-                      end
-
-        YAML.safe_load(raw_configs || '{}') || {}
-      end
-
       def app_secrets_s3
         @app_secrets_s3 ||= Identity::Hostdata.app_secrets_s3(logger: @logger, s3_client: @s3_client)
       end
@@ -79,25 +64,11 @@ module Identity
         "/%<env>s/#{app_configuration_path_component}/v1/application.yml"
       end
 
-      def role_configuration_s3_path
-        return if role_configuration_filename.nil?
-        "/%<env>s/#{app_configuration_path_component}/v1/#{role_configuration_filename}"
-      end
-
       def app_configuration_path_component
         return 'idp' if Identity::Hostdata.instance_role == 'worker'
         return 'idp' if Identity::Hostdata.instance_role == 'migration'
         return 'dashboard' if Identity::Hostdata.instance_role == 'app'
         Identity::Hostdata.instance_role
-      end
-
-      def role_configuration_filename
-        case Identity::Hostdata.instance_role
-        when 'idp'
-          'web.yml'
-        when 'worker'
-          'worker.yml'
-        end
       end
     end
   end
