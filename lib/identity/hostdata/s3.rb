@@ -35,6 +35,16 @@ module Identity
         nil
       end
 
+      def get_object(s3_path)
+        key = build_key(s3_path)
+
+        logger && logger.info("#{self.class}: getting object s3://#{bucket}/#{key}")
+
+        make_s3_get_object_request(key: key)
+      rescue Aws::S3::Errors::NoSuchKey
+        nil
+      end
+
       private
 
       def build_key(s3_path, response_target = nil)

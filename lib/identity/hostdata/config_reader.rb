@@ -8,6 +8,7 @@ require "active_support/core_ext/hash/except"
 
 module Identity
   module Hostdata
+    Configuration = Struct.new(:hash, :version, :updated_at, keyword_init: true)
     class ConfigReader
       attr_reader :app_root, :logger
 
@@ -37,23 +38,42 @@ module Identity
       private
 
       def base_configuration
-        @base_configuration ||= default_configuration.deep_merge(
-          app_override_configuration,
+        @base_configuration ||= default_configuration.hash.deep_merge(
+          app_override_configuration.hash,
         )
       end
 
       def default_configuration
-        YAML.safe_load(File.read(File.join(app_root, 'config', 'application.yml.default')))
+        return @default_configuration if defined?(@default_configuration)
+        path = File.join(Rails.root, 'config', 'application.yml.default')
+        @default_configuration = build_configuration_from_file_path(path)
       end
 
       def app_override_configuration
+        return @app_override_configuration if defined?(@app_override_configuration)
         local_config_filepath = File.join(app_root, 'config', 'application.yml')
-        raw_configs = if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
-                        app_secrets_s3.read_file(app_configuration_s3_path)
-                      elsif File.exist?(local_config_filepath)
-                        File.read(local_config_filepath)
-                      end
-        YAML.safe_load(raw_configs || '{}') || {}
+
+        @app_override_configuration =
+          if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
+            s3_object = app_secrets_s3.get_object(app_configuration_s3_path)
+            return Configuration.new(hash: {}) if s3_object.nil?
+
+            Configuration.new(
+              hash: YAML.safe_load(s3_object.body.read),
+              version: s3_object.version_id,
+              updated_at: s3_object.last_modified,
+            )
+          elsif File.exist?(local_config_filepath)
+            build_configuration_from_file_path(local_config_filepath)
+          else
+            Configuration.new(
+              hash: {},
+              version: nil,
+              updated_at: nil,
+            )
+          end
+
+        @app_override_configuration
       end
 
       def app_secrets_s3
@@ -69,6 +89,16 @@ module Identity
         return 'idp' if Identity::Hostdata.instance_role == 'migration'
         return 'dashboard' if Identity::Hostdata.instance_role == 'app'
         Identity::Hostdata.instance_role
+      end
+
+      def build_configuration_from_file_path(path)
+        file_stat = File.stat(path)
+        configuration = YAML.safe_load(File.read(path))
+        @default_configuration = Configuration.new(
+          hash: configuration,
+          version: nil,
+          updated_at: file_stat.mtime,
+        )
       end
     end
   end
