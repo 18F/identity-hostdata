@@ -5,6 +5,7 @@ require 'yaml'
 require "active_support"
 require "active_support/core_ext/hash/deep_merge"
 require "active_support/core_ext/hash/except"
+require "digest"
 
 module Identity
   module Hostdata
@@ -92,8 +93,11 @@ module Identity
 
       def config_version_from_local_file(path:)
         stat = File.stat(path)
-        content = YAML.safe_load_file(path) || {}
-        ConfigVersion.new(content: content, version: nil, last_updated: stat.mtime)
+        file_content = File.read(path)
+        version = Digest::SHA256.hexdigest(file_content)
+
+        content = YAML.safe_load(file_content) || {}
+        ConfigVersion.new(content: content, version: version, last_updated: stat.mtime)
       end
 
       def app_configuration_s3_path

@@ -103,7 +103,7 @@ RSpec.describe Identity::Hostdata::ConfigReader do
       it 'has version information' do
         expect(reader.configuration_version).to include(
           default: {
-            version: nil,
+            version: an_instance_of(String),
             last_updated: an_instance_of(Time),
           },
           app_override: {
@@ -193,11 +193,11 @@ RSpec.describe Identity::Hostdata::ConfigReader do
     it 'has version information' do
       expect(reader.configuration_version).to include(
         default: {
-          version: nil,
+          version: an_instance_of(String),
           last_updated: an_instance_of(Time),
         },
         app_override: {
-          version: nil,
+          version: an_instance_of(String),
           last_updated: an_instance_of(Time),
         }
       )
