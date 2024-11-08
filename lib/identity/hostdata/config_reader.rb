@@ -16,6 +16,7 @@ module Identity
         :version,
         :last_updated,
         keyword_init: true,
+        allowed_members: [:name, :version, :last_updated],
       )
       attr_reader :app_root, :logger
 
