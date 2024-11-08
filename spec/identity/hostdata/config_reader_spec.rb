@@ -60,7 +60,7 @@ RSpec.describe Identity::Hostdata::ConfigReader do
           key = context.params[:key]
           body = s3_contents[key]
           if body
-            { body: body }
+            { last_modified: Time.now, version_id: '123', body: body }
           else
             raise Aws::S3::Errors::NoSuchKey.new(nil, nil)
           end
@@ -84,18 +84,33 @@ RSpec.describe Identity::Hostdata::ConfigReader do
     end
 
     context 'on idps' do
-      it 'resolves the s3 paths correctly' do
+      before do
         allow(Identity::Hostdata).to receive(:instance_role).and_return('idp')
-
-        s3_contents['int/idp/v1/application.yml'] = 'config1: hello'
-
         expect(s3_client).to receive(:get_object).with(
           hash_including(key: 'int/idp/v1/application.yml')
         ).and_call_original
+      end
+
+      it 'resolves the s3 paths correctly' do
+        s3_contents['int/idp/v1/application.yml'] = 'config1: hello'
 
         configuration = reader.read_configuration('development')
 
         expect(configuration[:config1]).to eq('hello')
+      end
+
+
+      it 'has version information' do
+        expect(reader.configuration_version).to include(
+          default: {
+            version: an_instance_of(String),
+            last_updated: an_instance_of(Time),
+          },
+          app_override: {
+            version: '123',
+            last_updated: an_instance_of(Time),
+          }
+        )
       end
     end
 
@@ -172,6 +187,19 @@ RSpec.describe Identity::Hostdata::ConfigReader do
         env_config: 'test',
         overriden_env_config: 'test',
         overriden_base_config: 'test',
+      )
+    end
+
+    it 'has version information' do
+      expect(reader.configuration_version).to include(
+        default: {
+          version: an_instance_of(String),
+          last_updated: an_instance_of(Time),
+        },
+        app_override: {
+          version: an_instance_of(String),
+          last_updated: an_instance_of(Time),
+        }
       )
     end
   end

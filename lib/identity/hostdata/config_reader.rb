@@ -5,10 +5,19 @@ require 'yaml'
 require "active_support"
 require "active_support/core_ext/hash/deep_merge"
 require "active_support/core_ext/hash/except"
+require "digest"
 
 module Identity
   module Hostdata
     class ConfigReader
+      ConfigVersion = RedactedStruct.new(
+        :name,
+        :content,
+        :version,
+        :last_updated,
+        keyword_init: true,
+        allowed_members: [:name, :version, :last_updated],
+      )
       attr_reader :app_root, :logger
 
       # @param [Pathname] app_root
@@ -34,30 +43,62 @@ module Identity
         ).transform_keys(&:to_sym)
       end
 
+      def configuration_version
+        {
+          default: {
+            version: default_configuration[:version],
+            last_updated: default_configuration[:last_updated],
+          },
+          app_override: {
+            version: app_override_configuration[:version],
+            last_updated: app_override_configuration[:last_updated],
+          }
+        }
+      end
+
       private
 
       def base_configuration
-        @base_configuration ||= default_configuration.deep_merge(
-          app_override_configuration,
+        @base_configuration ||= default_configuration.content.deep_merge(
+          app_override_configuration.content,
         )
       end
 
       def default_configuration
-        YAML.safe_load(File.read(File.join(app_root, 'config', 'application.yml.default')))
+        return @default_configuration if defined?(@default_configuration)
+        path = File.join(app_root, 'config', 'application.yml.default')
+        @default_configuration = config_version_from_local_file(path: path)
       end
 
       def app_override_configuration
+        return @app_override_configuration if defined?(@app_override_configuration)
+
         local_config_filepath = File.join(app_root, 'config', 'application.yml')
-        raw_configs = if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
-                        app_secrets_s3.read_file(app_configuration_s3_path)
-                      elsif File.exist?(local_config_filepath)
-                        File.read(local_config_filepath)
-                      end
-        YAML.safe_load(raw_configs || '{}') || {}
+
+        @app_override_configuration = if Identity::Hostdata.in_datacenter? && !ENV['LOGIN_SKIP_REMOTE_CONFIG']
+          s3_object = app_secrets_s3.request_object(app_configuration_s3_path)
+          content = YAML.safe_load(s3_object.body.read)
+          ConfigVersion.new(content: content, version: s3_object.version_id, last_updated: s3_object.last_modified)
+        elsif File.exist?(local_config_filepath)
+          config_version_from_local_file(path: local_config_filepath)
+        else
+          ConfigVersion.new(content: {}, version: nil, last_updated: nil)
+        end
+
+        @app_override_configuration
       end
 
       def app_secrets_s3
         @app_secrets_s3 ||= Identity::Hostdata.app_secrets_s3(logger: @logger, s3_client: @s3_client)
+      end
+
+      def config_version_from_local_file(path:)
+        stat = File.stat(path)
+        file_content = File.read(path)
+        version = Digest::SHA256.hexdigest(file_content)
+
+        content = YAML.safe_load(file_content) || {}
+        ConfigVersion.new(content: content, version: version, last_updated: stat.mtime)
       end
 
       def app_configuration_s3_path

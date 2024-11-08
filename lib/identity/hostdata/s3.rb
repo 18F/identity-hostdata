@@ -22,7 +22,7 @@ module Identity
         logger && logger.info("#{self.class}: downloading s3://#{bucket}/#{key} to #{local_path}")
 
         FileUtils.mkdir_p(File.dirname(local_path))
-        s3_response = make_s3_get_object_request(key: key, response_target: local_path)
+        make_s3_get_object_request(key: key, response_target: local_path)
       end
 
       def read_file(s3_path)
@@ -35,11 +35,17 @@ module Identity
         nil
       end
 
-      private
+      def request_object(s3_path)
+        key = build_key(s3_path)
 
-      def build_key(s3_path, response_target = nil)
-        format(s3_path, env: env).sub(%r|\A/|, '')
+        logger && logger.info("#{self.class}: requesting s3://#{bucket}/#{key}")
+
+        make_s3_get_object_request(key: key)
+      rescue Aws::S3::Errors::NoSuchKey
+        nil
       end
+
+      private
 
       def make_s3_get_object_request(key:, response_target: nil)
         s3_client.get_object(
@@ -47,6 +53,10 @@ module Identity
           key: key,
           response_target: response_target,
         )
+      end
+
+      def build_key(s3_path, response_target = nil)
+        format(s3_path, env: env).sub(%r|\A/|, '')
       end
 
       def s3_client
