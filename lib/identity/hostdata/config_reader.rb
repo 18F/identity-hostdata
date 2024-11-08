@@ -9,7 +9,7 @@ require "active_support/core_ext/hash/except"
 module Identity
   module Hostdata
     class ConfigReader
-      ConfigVersion = Struct.new(
+      ConfigVersion = RedactedStruct.new(
         :name,
         :content,
         :version,
