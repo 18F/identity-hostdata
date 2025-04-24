@@ -109,6 +109,7 @@ module Identity
         return 'idp' if Identity::Hostdata.instance_role == 'worker'
         return 'idp' if Identity::Hostdata.instance_role == 'migration'
         return 'dashboard' if Identity::Hostdata.instance_role == 'app'
+        return 'analytics' if Identity::Hostdata.instance_role == 'analytics-migration'
         Identity::Hostdata.instance_role
       end
     end
