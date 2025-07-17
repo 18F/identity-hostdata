@@ -53,6 +53,13 @@ module Identity
           key: key,
           response_target: response_target,
         )
+      rescue => e
+        hook_path = "/etc/login.gov/info/skip_abandon_hook"
+        FileUtils.mkdir_p(File.dirname(hook_path))
+        logger && logger.info("Error type: #{e.class}")
+        logger && logger.info("Error message: #{e.message}")
+        logger && logger.info("Full backtrace:\n#{e.backtrace.join("\n")}")
+        logger && logger.info("#{hook_path} created")
       end
 
       def build_key(s3_path, response_target = nil)
