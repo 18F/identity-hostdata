@@ -54,3 +54,13 @@ test_app:
     expire_in: 31d
     paths:
       - rspec.xml
+
+lint:
+  stage: test
+  needs:
+    - job: install_dependencies
+  cache:
+    - <<: *ruby_cache
+  script:
+    - *bundle_install
+    - make lint
