@@ -2,10 +2,10 @@ require 'logger'
 require 'fileutils'
 require 'yaml'
 
-require "active_support"
-require "active_support/core_ext/hash/deep_merge"
-require "active_support/core_ext/hash/except"
-require "digest"
+require 'active_support'
+require 'active_support/core_ext/hash/deep_merge'
+require 'active_support/core_ext/hash/except'
+require 'digest'
 
 module Identity
   module Hostdata
@@ -16,7 +16,7 @@ module Identity
         :version,
         :last_updated,
         keyword_init: true,
-        allowed_members: [:name, :version, :last_updated],
+        allowed_members: %i[name version last_updated],
       )
       attr_reader :app_root, :logger
 
@@ -66,6 +66,7 @@ module Identity
 
       def default_configuration
         return @default_configuration if defined?(@default_configuration)
+
         path = File.join(app_root, 'config', 'application.yml.default')
         @default_configuration = config_version_from_local_file(path: path)
       end
@@ -110,6 +111,7 @@ module Identity
         return 'idp' if Identity::Hostdata.instance_role == 'migration'
         return 'dashboard' if Identity::Hostdata.instance_role == 'app'
         return 'analytics' if Identity::Hostdata.instance_role == 'analytics-migration'
+
         Identity::Hostdata.instance_role
       end
     end

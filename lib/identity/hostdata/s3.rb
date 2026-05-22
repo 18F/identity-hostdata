@@ -55,8 +55,8 @@ module Identity
         )
       end
 
-      def build_key(s3_path, response_target = nil)
-        format(s3_path, env: env).sub(%r|\A/|, '')
+      def build_key(s3_path, _response_target = nil)
+        format(s3_path, env: env).sub(%r{\A/}, '')
       end
 
       def s3_client

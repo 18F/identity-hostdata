@@ -45,9 +45,7 @@ module Identity
           # When the store is built `Time.zone` is not set resulting in a NoMethodError
           # if Time.zone.parse is called
           #
-          # rubocop:disable Rails/TimeZone
           Time.parse(value)
-          # rubocop:enable Rails/TimeZone
         end,
       }.freeze
 
@@ -88,8 +86,8 @@ module Identity
 
         converted_value = if block_given?
           yield raw_value
-        else
-          CONVERTERS.fetch(type).call(raw_value, options: options) if !raw_value.nil?
+        elsif !raw_value.nil?
+          CONVERTERS.fetch(type).call(raw_value, options: options)
         end
         raise "#{key} is required but is not present" if converted_value.nil? && !allow_nil
         if enum && !(enum.include?(converted_value) || (converted_value.nil? && allow_nil))
@@ -101,7 +99,7 @@ module Identity
 
       def fetch_value_from_source(key, value)
         if value.is_a?(Array)
-          type, name, *rest = value
+          type, name, = value
           case type
           when 'env'
             ENV.fetch(name)

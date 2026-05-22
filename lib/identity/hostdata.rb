@@ -1,9 +1,9 @@
-require "identity/hostdata/config_builder"
-require "identity/hostdata/config_reader"
-require "identity/hostdata/ec2"
-require "identity/hostdata/s3"
-require "identity/hostdata/version"
-require "json"
+require 'identity/hostdata/config_builder'
+require 'identity/hostdata/config_reader'
+require 'identity/hostdata/ec2'
+require 'identity/hostdata/s3'
+require 'identity/hostdata/version'
+require 'json'
 
 module Identity
   module Hostdata
@@ -21,6 +21,7 @@ module Identity
     # @return [String]
     def self.domain
       return @domain if defined?(@domain)
+
       @domain = ENV['LOGIN_DOMAIN'] || File.read(File.join(root.to_s, DOMAIN_PATH)).chomp
     rescue Errno::ENOENT => err
       raise MissingConfigError, err.message if in_datacenter?
@@ -29,6 +30,7 @@ module Identity
     # @return [String]
     def self.env
       return @env if defined?(@env)
+
       @env = ENV['LOGIN_ENV'] || File.read(File.join(root.to_s, ENV_PATH)).chomp
     rescue Errno::ENOENT => err
       raise MissingConfigError, err.message if in_datacenter?
@@ -66,12 +68,14 @@ module Identity
       @host_config = JSON.parse(config_contents, symbolize_names: true)
     rescue Errno::ENOENT => err
       raise MissingConfigError, err.message if in_datacenter?
+
       {}
     end
 
     # @return [String]
     def self.instance_role
       return @instance_role if defined?(@instance_role)
+
       @instance_role = ENV['LOGIN_HOST_ROLE'] || File.read(File.join(root.to_s, INSTANCE_ROLE_PATH)).chomp
     rescue Errno::ENOENT => err
       raise MissingConfigError, err.message if in_datacenter?
@@ -80,14 +84,16 @@ module Identity
     # @return [Boolean]
     def self.in_datacenter?
       return @in_datacenter if defined?(@in_datacenter)
+
       @in_datacenter = ENV['LOGIN_DATACENTER'] == 'true' ||
-                         File.directory?(File.join(root.to_s, CONFIG_DIR))
+                       File.directory?(File.join(root.to_s, CONFIG_DIR))
     end
 
     # @yield Executes a block if in_datacenter?
     # @yieldparam hostdata
     def self.in_datacenter
       raise LocalJumpError, 'in_datacenter must be called with a block' unless block_given?
+
       yield self if in_datacenter?
     end
 
@@ -139,7 +145,7 @@ module Identity
     end
 
     class << self
-      alias_method :default_logger, :logger
+      alias default_logger logger
 
       attr_accessor :root
 

@@ -1,7 +1,17 @@
 require 'spec_helper'
 
 RSpec.describe Identity::Hostdata::S3 do
-  around(:each) do |ex|
+  subject(:s3) do
+    Identity::Hostdata::S3.new(
+      bucket: bucket,
+      env: env,
+      region: region,
+      logger: logger,
+      s3_client: fake_s3
+    )
+  end
+
+  around do |ex|
     Identity::Hostdata.reset!
 
     Dir.mktmpdir do |root|
@@ -17,23 +27,12 @@ RSpec.describe Identity::Hostdata::S3 do
   let(:logger) { Logger.new('/dev/null') }
   let(:fake_s3) { Aws::S3::Client.new(stub_responses: true) }
 
-  subject(:s3) do
-    Identity::Hostdata::S3.new(
-      bucket: bucket,
-      env: env,
-      region: region,
-      logger: logger,
-      s3_client: fake_s3
-    )
-  end
-
   describe '#download_file' do
-    let(:local_config_file) { "#{@root}/srv/idp/current/config/config.yml" }
-
     subject(:download_file) do
       s3.download_file(s3_path: '/%{env}/v1/idp/some_config.yml', local_path: local_config_file)
     end
 
+    let(:local_config_file) { "#{@root}/srv/idp/current/config/config.yml" }
     let(:config_body) { 'test config data' }
 
     before do
@@ -94,7 +93,7 @@ RSpec.describe Identity::Hostdata::S3 do
       fake_s3.stub_responses(:get_object, { body: config_body })
 
       expect(logger).to receive(:info).with(
-        "Identity::Hostdata::S3: reading s3://some-bucket-name/staging/v1/idp/some_config.yml"
+        'Identity::Hostdata::S3: reading s3://some-bucket-name/staging/v1/idp/some_config.yml'
       )
 
       read_file

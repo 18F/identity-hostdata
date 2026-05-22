@@ -24,7 +24,7 @@ module Identity
       # get token
       def self.v2_token
         http.put('/latest/api/token', nil, 'X-aws-ec2-metadata-token-ttl-seconds' => '60').body.chomp
-      end 
+      end
 
       attr_reader :document
 

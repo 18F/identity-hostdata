@@ -1,34 +1,7 @@
 require 'spec_helper'
 
 RSpec.describe Identity::Hostdata::EC2 do
-  describe '.load' do
-    subject(:load) { Identity::Hostdata::EC2.load }
-
-    let(:ec2_api_token) { SecureRandom.hex }
-
-    it 'loads data from the magic ECS URL' do
-      stub_request(:put, 'http://169.254.169.254/latest/api/token').
-          with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-          to_return(body: ec2_api_token)
-      stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-        with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
-        to_return(body: document.to_json)
-
-      ec2 = load
-      expect(ec2.region).to eq('us-west-2')
-    end
-
-    it 'blows up when the request times out' do
-      stub_request(:put, 'http://169.254.169.254/latest/api/token').
-          with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-          to_return(body: ec2_api_token)
-      stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-        with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
-        to_timeout
-
-      expect { load }.to raise_error(Net::OpenTimeout)
-    end
-  end
+  subject(:ec2) { Identity::Hostdata::EC2.new(document) }
 
   let(:document) do
     {
@@ -49,7 +22,34 @@ RSpec.describe Identity::Hostdata::EC2 do
     }
   end
 
-  subject(:ec2) { Identity::Hostdata::EC2.new(document) }
+  describe '.load' do
+    subject(:load) { Identity::Hostdata::EC2.load }
+
+    let(:ec2_api_token) { SecureRandom.hex }
+
+    it 'loads data from the magic ECS URL' do
+      stub_request(:put, 'http://169.254.169.254/latest/api/token').
+        with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
+        to_return(body: ec2_api_token)
+      stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
+        with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
+        to_return(body: document.to_json)
+
+      ec2 = load
+      expect(ec2.region).to eq('us-west-2')
+    end
+
+    it 'blows up when the request times out' do
+      stub_request(:put, 'http://169.254.169.254/latest/api/token').
+        with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
+        to_return(body: ec2_api_token)
+      stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
+        with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
+        to_timeout
+
+      expect { load }.to raise_error(Net::OpenTimeout)
+    end
+  end
 
   describe '#region' do
     subject(:region) { ec2.region }

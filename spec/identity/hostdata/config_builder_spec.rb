@@ -1,76 +1,6 @@
 require 'spec_helper'
 
 RSpec.describe Identity::Hostdata::ConfigBuilder do
-  subject(:config_builder) { Identity::Hostdata::ConfigBuilder.new }
-
-  describe '::CONVERTERS' do
-    describe 'comma_separated_string_list' do
-      it 'respects double-quotes for embedded commas' do
-        config = config_builder.build!({ csv_value: 'one,two,"three,four"' }) do |builder|
-          builder.add(:csv_value, type: :comma_separated_string_list)
-        end
-
-        expect(config.csv_value).to eq(['one', 'two', 'three,four'])
-      end
-
-      it 'parses empty value as empty array' do
-        config = config_builder.build!({ csv_value: '' }) do |builder|
-          builder.add(:csv_value, type: :comma_separated_string_list)
-        end
-
-        expect(config.csv_value).to eq([])
-      end
-    end
-  end
-
-  let(:in_datacenter) { true }
-  before do
-    Identity::Hostdata.reset!
-
-    stub_const(
-      'ENV',
-      {
-        'SOME_ENV_VAR' => 'eee',
-        'LOGIN_AWS_REGION' => 'us-west-2',
-        'LOGIN_DATACENTER' => (in_datacenter ? 'true' : nil),
-      },
-    )
-
-    if in_datacenter
-      stub_ec2_metadata
-      Aws.config[:secretsmanager] = {
-        stub_responses: {
-          get_secret_value: proc do |context|
-            {
-              secret_string: secrets_manager_values.fetch(context.params[:secret_id]),
-            }
-          end,
-        }
-      }
-    end
-  end
-
-  after { Identity::Hostdata.reset! }
-
-  let(:secrets_manager_values) do
-    {
-      'redshift!example-awsuser' => { 'username' => 'ssm-username', 'password' => 'pass' }.to_json,
-      'my_secrets_manager_key' => 'secrets_manager_secret',
-    }
-  end
-  let(:values) do
-    {
-      string_key: 'aaa',
-      boolean_key: true,
-      int_key: 111,
-      commas_key: 'a,b,c',
-      json_array: '["d","e","f"]',
-      string_env_key: ['env', 'SOME_ENV_VAR'],
-      string_secrets_manager_key: ['secrets_manager', 'my_secrets_manager_key'],
-      never_used_key: 'never'
-    }
-  end
-
   subject(:build!) do
     config_builder.build!(values) do |builder|
       builder.add(:string_key, type: :string)
@@ -97,6 +27,75 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
     end
   end
 
+  let(:config_builder) { Identity::Hostdata::ConfigBuilder.new }
+  let(:values) do
+    {
+      string_key: 'aaa',
+      boolean_key: true,
+      int_key: 111,
+      commas_key: 'a,b,c',
+      json_array: '["d","e","f"]',
+      string_env_key: %w[env SOME_ENV_VAR],
+      string_secrets_manager_key: %w[secrets_manager my_secrets_manager_key],
+      never_used_key: 'never'
+    }
+  end
+  let(:secrets_manager_values) do
+    {
+      'redshift!example-awsuser' => { 'username' => 'ssm-username', 'password' => 'pass' }.to_json,
+      'my_secrets_manager_key' => 'secrets_manager_secret',
+    }
+  end
+  let(:in_datacenter) { true }
+
+  after { Identity::Hostdata.reset! }
+
+  before do
+    Identity::Hostdata.reset!
+
+    stub_const(
+      'ENV',
+      {
+        'SOME_ENV_VAR' => 'eee',
+        'LOGIN_AWS_REGION' => 'us-west-2',
+        'LOGIN_DATACENTER' => (in_datacenter ? 'true' : nil),
+      },
+    )
+
+    if in_datacenter
+      stub_ec2_metadata
+      Aws.config[:secretsmanager] = {
+        stub_responses: {
+          get_secret_value: proc do |context|
+            {
+              secret_string: secrets_manager_values.fetch(context.params[:secret_id]),
+            }
+          end,
+        }
+      }
+    end
+  end
+
+  describe '::CONVERTERS' do
+    describe 'comma_separated_string_list' do
+      it 'respects double-quotes for embedded commas' do
+        config = config_builder.build!({ csv_value: 'one,two,"three,four"' }) do |builder|
+          builder.add(:csv_value, type: :comma_separated_string_list)
+        end
+
+        expect(config.csv_value).to eq(['one', 'two', 'three,four'])
+      end
+
+      it 'parses empty value as empty array' do
+        config = config_builder.build!({ csv_value: '' }) do |builder|
+          builder.add(:csv_value, type: :comma_separated_string_list)
+        end
+
+        expect(config.csv_value).to eq([])
+      end
+    end
+  end
+
   describe '#build!' do
     context 'in a deployed environment' do
       let(:in_datacenter) { true }
@@ -107,7 +106,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
         expect(result.string_key).to eq('aaa')
         expect(result.boolean_key).to eq(true)
         expect(result.int_key).to eq(111)
-        expect(result.commas_key).to eq(%w[a b c ])
+        expect(result.commas_key).to eq(%w[a b c])
         expect(result.json_array).to eq(%w[d e f])
         expect(result.string_env_key).to eq('eee')
 
@@ -123,7 +122,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
 
       let(:values) do
         super().merge(
-          :'redshift!example-awsuser' => {
+          'redshift!example-awsuser': {
             'username' => 'local-username',
             'password' => 'local-password',
           }.to_json,

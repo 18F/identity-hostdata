@@ -16,20 +16,19 @@ RSpec.describe Identity::Hostdata::ConfigReader do
       overriden_base_config: 'test'
   HEREDOC
 
-  let(:app_root) { @app_root }
+  subject(:reader) { described_class.new(app_root: app_root, logger: logger, s3_client: s3_client) }
 
-  around(:each) do |ex|
+  let(:app_root) { @app_root }
+  let(:logger) { Logger.new('/dev/null') }
+  let(:s3_client) { nil }
+
+  around do |ex|
     Dir.mktmpdir do |app_root|
       @app_root = app_root
       set_tmp_dir_fixtures(app_root)
       ex.run
     end
   end
-
-  let(:logger) { Logger.new('/dev/null') }
-  let(:s3_client) { nil }
-
-  subject(:reader) { described_class.new(app_root: app_root, logger: logger, s3_client: s3_client) }
 
   context 'in the datacenter' do
     let(:s3_client) { Aws::S3::Client.new(stub_responses: true) }
@@ -46,24 +45,22 @@ RSpec.describe Identity::Hostdata::ConfigReader do
       allow(Identity::Hostdata).to receive(:env).and_return('int')
 
       stub_request(:put, 'http://169.254.169.254/latest/api/token').
-          with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
-          to_return(body: ec2_api_token)
+        with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
+        to_return(body: ec2_api_token)
       stub_request(:get, 'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document').
-          with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
-          to_return(body: {
-            'region' => 'us-west-1',
-            'accountId' => '12345',
-          }.to_json)
+        with(headers: { 'X-aws-ec2-metadata-token' => ec2_api_token }).
+        to_return(body: {
+          'region' => 'us-west-1',
+          'accountId' => '12345',
+        }.to_json)
 
       s3_client.stub_responses(
         :get_object, proc do |context|
           key = context.params[:key]
           body = s3_contents[key]
-          if body
-            { last_modified: Time.now, version_id: '123', body: body }
-          else
-            raise Aws::S3::Errors::NoSuchKey.new(nil, nil)
-          end
+          raise Aws::S3::Errors::NoSuchKey.new(nil, nil) unless body
+
+          { last_modified: Time.now, version_id: '123', body: body }
         end
       )
       allow(s3_client).to receive(:get_object).and_call_original
@@ -98,7 +95,6 @@ RSpec.describe Identity::Hostdata::ConfigReader do
 
         expect(configuration[:config1]).to eq('hello')
       end
-
 
       it 'has version information' do
         expect(reader.configuration_version).to include(

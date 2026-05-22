@@ -1,11 +1,13 @@
-require "spec_helper"
+require 'spec_helper'
 
 RSpec.describe Identity::Hostdata do
-  it "has a version number" do
-    expect(Identity::Hostdata::VERSION).not_to be nil
+  let(:env) { {} }
+
+  before do
+    stub_const('ENV', env)
   end
 
-  around(:each) do |ex|
+  around do |ex|
     Identity::Hostdata.reset!
 
     Dir.mktmpdir do |root|
@@ -15,10 +17,8 @@ RSpec.describe Identity::Hostdata do
     end
   end
 
-  let(:env) { {} }
-
-  before do
-    stub_const('ENV', env)
+  it 'has a version number' do
+    expect(Identity::Hostdata::VERSION).not_to be_nil
   end
 
   describe '.domain' do
@@ -264,7 +264,6 @@ RSpec.describe Identity::Hostdata do
     end
 
     context 'when the LOGIN_HOST_CONFIG env var is set' do
-
       let(:env) do
         {
           'LOGIN_HOST_CONFIG' => config_data.to_json,
@@ -286,14 +285,14 @@ RSpec.describe Identity::Hostdata do
   end
 
   describe '.app_secrets_s3' do
+    subject(:s3) { Identity::Hostdata.app_secrets_s3 }
+
     before do
       stub_ec2_metadata
 
       FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
       File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'int' }
     end
-
-    subject(:s3) { Identity::Hostdata.app_secrets_s3 }
 
     it 'creates an S3 instance with the app secrets bucket' do
       expect(s3.env).to eq('int')
@@ -302,9 +301,9 @@ RSpec.describe Identity::Hostdata do
     end
 
     context 'with an s3_client param' do
-      let(:s3_client) { Aws::S3::Client.new(stub_responses: true) }
-
       subject(:s3) { Identity::Hostdata.app_secrets_s3(s3_client: s3_client) }
+
+      let(:s3_client) { Aws::S3::Client.new(stub_responses: true) }
 
       it 'passes s3_client through' do
         expect(s3.send(:s3_client)).to eq(s3_client)
@@ -312,9 +311,9 @@ RSpec.describe Identity::Hostdata do
     end
 
     context 'with a logger param' do
-      let(:logger) { Logger.new(STDOUT) }
-
       subject(:s3) { Identity::Hostdata.app_secrets_s3(logger: logger) }
+
+      let(:logger) { Logger.new(STDOUT) }
 
       it 'passes the logger through' do
         expect(s3.logger).to eq(logger)
@@ -323,14 +322,14 @@ RSpec.describe Identity::Hostdata do
   end
 
   describe '.secrets_s3' do
+    subject(:s3) { Identity::Hostdata.secrets_s3 }
+
     before do
       stub_ec2_metadata
 
       FileUtils.mkdir_p("#{@root}/etc/login.gov/info")
       File.open("#{@root}/etc/login.gov/info/env", 'w') { |f| f.puts 'int' }
     end
-
-    subject(:s3) { Identity::Hostdata.secrets_s3 }
 
     it 'creates an S3 instance with the secrets bucket' do
       expect(s3.env).to eq('int')
@@ -339,9 +338,9 @@ RSpec.describe Identity::Hostdata do
     end
 
     context 'with an s3_client param' do
-      let(:s3_client) {  Aws::S3::Client.new(stub_responses: true) }
-
       subject(:s3) { Identity::Hostdata.secrets_s3(s3_client: s3_client) }
+
+      let(:s3_client) { Aws::S3::Client.new(stub_responses: true) }
 
       it 'passes s3_client through' do
         expect(s3.send(:s3_client)).to eq(s3_client)
@@ -349,8 +348,9 @@ RSpec.describe Identity::Hostdata do
     end
 
     context 'with a logger param' do
-      let(:logger) { Logger.new(STDOUT) }
       subject(:s3) { Identity::Hostdata.secrets_s3(logger: logger) }
+
+      let(:logger) { Logger.new(STDOUT) }
 
       it 'passes the logger through' do
         expect(s3.logger).to eq(logger)

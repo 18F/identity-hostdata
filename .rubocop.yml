@@ -1,0 +1,26 @@
+inherit_from: .rubocop_todo.yml
+
+plugins:
+  - rubocop-rspec
+  - rubocop-rake
+
+AllCops:
+  TargetRubyVersion: 3.4.7
+
+Naming/RescuedExceptionsVariableName:
+  PreferredName: err
+
+Layout/DotPosition:
+  Enabled: false
+
+Style/TrailingCommaInArguments:
+  Enabled: false
+
+Style/TrailingCommaInHashLiteral:
+  Enabled: false
+
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: start_of_line
+
+RSpec/MessageSpies:
+  Enabled: false
