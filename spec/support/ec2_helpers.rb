@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Ec2Helpers
   def stub_ec2_metadata(ec2_api_token: SecureRandom.hex)
     stub_request(:put, 'http://169.254.169.254/latest/api/token').

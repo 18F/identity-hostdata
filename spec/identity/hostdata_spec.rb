@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe Identity::Hostdata do
@@ -54,7 +56,7 @@ RSpec.describe Identity::Hostdata do
 
     context 'when /etc/login.gov does not exist (development environment)' do
       it 'is nil' do
-        expect(Identity::Hostdata.domain).to eq(nil)
+        expect(Identity::Hostdata.domain).to be_nil
       end
     end
   end
@@ -92,7 +94,7 @@ RSpec.describe Identity::Hostdata do
 
     context 'when /etc/login.gov does not exist (development environment)' do
       it 'is nil' do
-        expect(Identity::Hostdata.env).to eq(nil)
+        expect(Identity::Hostdata.env).to be_nil
       end
     end
   end
@@ -130,7 +132,7 @@ RSpec.describe Identity::Hostdata do
 
     context 'when /etc/login.gov does not exist (development environment)' do
       it 'is nil' do
-        expect(Identity::Hostdata.instance_role).to eq(nil)
+        expect(Identity::Hostdata.instance_role).to be_nil
       end
     end
   end
@@ -175,17 +177,17 @@ RSpec.describe Identity::Hostdata do
     it 'is true when the /etc/login.gov directory exists' do
       FileUtils.mkdir_p("#{@root}/etc/login.gov")
 
-      expect(Identity::Hostdata.in_datacenter?).to eq(true)
+      expect(Identity::Hostdata.in_datacenter?).to be(true)
     end
 
     it 'is true when the HOSTDATA_DATACENTER var is set to "true"' do
       env['LOGIN_DATACENTER'] = 'true'
 
-      expect(Identity::Hostdata.in_datacenter?).to eq(true)
+      expect(Identity::Hostdata.in_datacenter?).to be(true)
     end
 
     it 'is false when the /etc/login.gov does not exist' do
-      expect(Identity::Hostdata.in_datacenter?).to eq(false)
+      expect(Identity::Hostdata.in_datacenter?).to be(false)
     end
   end
 
@@ -206,7 +208,7 @@ RSpec.describe Identity::Hostdata do
           expect(hostdata).to eq(Identity::Hostdata)
         end
 
-        expect(called).to eq(true)
+        expect(called).to be(true)
       end
     end
 
@@ -220,7 +222,7 @@ RSpec.describe Identity::Hostdata do
 
         Identity::Hostdata.in_datacenter { called = true }
 
-        expect(called).to eq(false)
+        expect(called).to be(false)
       end
     end
   end
@@ -313,7 +315,7 @@ RSpec.describe Identity::Hostdata do
     context 'with a logger param' do
       subject(:s3) { Identity::Hostdata.app_secrets_s3(logger: logger) }
 
-      let(:logger) { Logger.new(STDOUT) }
+      let(:logger) { Logger.new($stdout) }
 
       it 'passes the logger through' do
         expect(s3.logger).to eq(logger)
@@ -350,7 +352,7 @@ RSpec.describe Identity::Hostdata do
     context 'with a logger param' do
       subject(:s3) { Identity::Hostdata.secrets_s3(logger: logger) }
 
-      let(:logger) { Logger.new(STDOUT) }
+      let(:logger) { Logger.new($stdout) }
 
       it 'passes the logger through' do
         expect(s3.logger).to eq(logger)
@@ -370,11 +372,11 @@ RSpec.describe Identity::Hostdata do
 
   describe '.logger' do
     it 'has a default value' do
-      expect(Identity::Hostdata.logger).to be
+      expect(Identity::Hostdata.logger).to be_truthy
     end
 
     it 'has a setter' do
-      logger = Logger.new(STDOUT)
+      logger = Logger.new($stdout)
 
       Identity::Hostdata.logger = logger
 

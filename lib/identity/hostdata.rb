@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'identity/hostdata/config_builder'
 require 'identity/hostdata/config_reader'
 require 'identity/hostdata/ec2'
@@ -141,7 +143,7 @@ module Identity
 
     # @return [Logger]
     def self.logger
-      @logger ||= Logger.new(STDOUT)
+      @logger ||= Logger.new($stdout)
     end
 
     class << self

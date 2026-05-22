@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe Identity::Hostdata::S3 do
@@ -86,7 +88,7 @@ RSpec.describe Identity::Hostdata::S3 do
       fake_s3.stub_responses(:get_object, 'NoSuchKey')
 
       result = s3.read_file('/no/such/key.yml')
-      expect(result).to eq(nil)
+      expect(result).to be_nil
     end
 
     it 'logs which files it is reading' do

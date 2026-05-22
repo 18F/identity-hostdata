@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe Identity::Hostdata::ConfigReader do
@@ -25,7 +27,7 @@ RSpec.describe Identity::Hostdata::ConfigReader do
   around do |ex|
     Dir.mktmpdir do |app_root|
       @app_root = app_root
-      set_tmp_dir_fixtures(app_root)
+      setup_tmp_dir_fixtures(app_root)
       ex.run
     end
   end
@@ -40,9 +42,7 @@ RSpec.describe Identity::Hostdata::ConfigReader do
     let(:ec2_api_token) { SecureRandom.hex }
 
     before do
-      allow(Identity::Hostdata).to receive(:in_datacenter?).and_return(true)
-      allow(Identity::Hostdata).to receive(:instance_role).and_return('idp')
-      allow(Identity::Hostdata).to receive(:env).and_return('int')
+      allow(Identity::Hostdata).to receive_messages(in_datacenter?: true, instance_role: 'idp', env: 'int')
 
       stub_request(:put, 'http://169.254.169.254/latest/api/token').
         with(headers: { 'X-Aws-Ec2-Metadata-Token-Ttl-Seconds' => '60' }).
@@ -200,7 +200,7 @@ RSpec.describe Identity::Hostdata::ConfigReader do
     end
   end
 
-  def set_tmp_dir_fixtures(root)
+  def setup_tmp_dir_fixtures(root)
     FileUtils.mkdir_p(File.join(root, 'config'))
     File.write(File.join(root, 'config', 'application.yml.default'), DEFAULT_YAML)
     File.write(File.join(root, 'config', 'application.yml'), OVERRIDE_YAML)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aws-sdk-s3'
 require 'fileutils'
 require 'json'
@@ -19,7 +21,7 @@ module Identity
       def download_file(s3_path:, local_path:)
         key = build_key(s3_path)
 
-        logger && logger.info("#{self.class}: downloading s3://#{bucket}/#{key} to #{local_path}")
+        logger&.info("#{self.class}: downloading s3://#{bucket}/#{key} to #{local_path}")
 
         FileUtils.mkdir_p(File.dirname(local_path))
         make_s3_get_object_request(key: key, response_target: local_path)
@@ -28,7 +30,7 @@ module Identity
       def read_file(s3_path)
         key = build_key(s3_path)
 
-        logger && logger.info("#{self.class}: reading s3://#{bucket}/#{key}")
+        logger&.info("#{self.class}: reading s3://#{bucket}/#{key}")
 
         make_s3_get_object_request(key: key).body.read
       rescue Aws::S3::Errors::NoSuchKey
@@ -38,7 +40,7 @@ module Identity
       def request_object(s3_path)
         key = build_key(s3_path)
 
-        logger && logger.info("#{self.class}: requesting s3://#{bucket}/#{key}")
+        logger&.info("#{self.class}: requesting s3://#{bucket}/#{key}")
 
         make_s3_get_object_request(key: key)
       rescue Aws::S3::Errors::NoSuchKey

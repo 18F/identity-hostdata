@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe Identity::Hostdata::ConfigBuilder do
@@ -104,7 +106,7 @@ RSpec.describe Identity::Hostdata::ConfigBuilder do
         result = build!
 
         expect(result.string_key).to eq('aaa')
-        expect(result.boolean_key).to eq(true)
+        expect(result.boolean_key).to be(true)
         expect(result.int_key).to eq(111)
         expect(result.commas_key).to eq(%w[a b c])
         expect(result.json_array).to eq(%w[d e f])

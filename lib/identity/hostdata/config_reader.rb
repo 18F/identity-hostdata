@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'logger'
 require 'fileutils'
 require 'yaml'
@@ -24,7 +26,7 @@ module Identity
       def initialize(
         app_root:,
         s3_client: nil,
-        logger: Logger.new(STDOUT)
+        logger: Logger.new($stdout)
       )
         @app_root = app_root
         @s3_client = s3_client
